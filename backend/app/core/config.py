@@ -1,4 +1,21 @@
 import os
+from pathlib import Path
+
+def resolve_data_path() -> str:
+    env_path = os.getenv("MPLADS_DATA_PATH")
+    if env_path and os.path.exists(env_path):
+        return env_path
+    current_dir = Path(__file__).resolve().parent
+    candidates = [
+        current_dir.parent.parent / "data" / "synthetic_mplads_works.csv",
+        current_dir.parent.parent.parent / "data" / "synthetic_mplads_works.csv",
+        Path("data/synthetic_mplads_works.csv").resolve(),
+        Path("../data/synthetic_mplads_works.csv").resolve(),
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+    return "data/synthetic_mplads_works.csv"
 
 class Settings:
     PROJECT_NAME: str = "Explainable Risk Intelligence Layer for MPLADS"
@@ -6,7 +23,7 @@ class Settings:
     API_V1_STR: str = "/api/v1"
     
     # Base Data Paths
-    DATA_PATH: str = os.getenv("MPLADS_DATA_PATH", "data/synthetic_mplads_works.csv")
+    DATA_PATH: str = resolve_data_path()
     
     # Default Risk Dimension Weights (Total = 100)
     WEIGHT_FINANCIAL: int = 30
