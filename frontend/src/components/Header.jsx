@@ -3,6 +3,7 @@ import { Bell, User, HelpCircle, Menu, ShieldCheck, ChevronDown } from 'lucide-r
 import NotificationsPanel from './NotificationsPanel';
 import HelpModal from './HelpModal';
 import UserProfileModal from './UserProfileModal';
+import { useToast } from './Toast';
 
 export default function Header({ 
   currentRole, 
@@ -13,6 +14,7 @@ export default function Header({
   onToggleMobileSidebar,
   onRefreshData
 }) {
+  const { addToast } = useToast();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -65,7 +67,14 @@ export default function Header({
               <select
                 id="role-select"
                 value={currentRole}
-                onChange={(e) => setCurrentRole(e.target.value)}
+                onChange={(e) => {
+                  const newRole = e.target.value;
+                  setCurrentRole(newRole);
+                  const selectedRoleObj = roles.find(r => r.id === newRole);
+                  if (selectedRoleObj) {
+                    addToast(`Switched active view to: ${selectedRoleObj.label}`, 'info');
+                  }
+                }}
                 className="bg-[#F9FAFB] text-[#1F2933] text-xs font-semibold border border-[#D0D5DD] rounded-md pl-2 pr-6 py-1.5 focus:outline-none focus:border-[#183B56] cursor-pointer appearance-none"
                 aria-label="Select administrative role"
               >
@@ -116,8 +125,20 @@ export default function Header({
               <User className="w-3.5 h-3.5" />
             </div>
             <div className="hidden lg:block text-left">
-              <div className="text-xs font-semibold text-[#1F2933] leading-tight">DM Office, Jaipur</div>
-              <div className="text-[10px] text-[#667085]">Nodal Authority</div>
+              <div className="text-xs font-semibold text-[#1F2933] leading-tight">
+                {currentRole === 'DISTRICT' && 'DM Office, Jaipur'}
+                {currentRole === 'STATE' && 'Govt. of Rajasthan'}
+                {currentRole === 'MP' && "Hon'ble MP (Jaipur)"}
+                {currentRole === 'MINISTRY' && 'MoSPI Central Ministry'}
+                {currentRole === 'CITIZEN' && 'Citizen Transparency'}
+              </div>
+              <div className="text-[10px] text-[#667085]">
+                {currentRole === 'DISTRICT' && 'District Magistrate'}
+                {currentRole === 'STATE' && 'State Nodal Officer'}
+                {currentRole === 'MP' && 'Constituency Rep'}
+                {currentRole === 'MINISTRY' && 'National Oversight'}
+                {currentRole === 'CITIZEN' && 'Public Portal'}
+              </div>
             </div>
           </button>
 

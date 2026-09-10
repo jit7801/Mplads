@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import RoleContextBanner from './components/RoleContextBanner';
 import KPICards from './components/KPICards';
 import PriorityTable from './components/PriorityTable';
 import WorksTableView from './components/WorksTableView';
@@ -150,6 +151,68 @@ function AppContent() {
     }
   };
 
+  // 2. Compute dynamic jurisdiction scoping per selected role
+  const scopedWorks = useMemo(() => {
+    if (!works || works.length === 0) return [];
+    if (currentRole === 'DISTRICT' || currentRole === 'MP') {
+      return works.filter((w) => (w.district || '').toLowerCase() === 'jaipur');
+    }
+    if (currentRole === 'STATE') {
+      return works.filter((w) => (w.state || '').toLowerCase() === 'rajasthan');
+    }
+    return works; // MINISTRY, CITIZEN or others
+  }, [works, currentRole]);
+
+  const scopedDuplicatePairs = useMemo(() => {
+    if (!duplicatePairs || duplicatePairs.length === 0) return [];
+    if (currentRole === 'DISTRICT' || currentRole === 'MP') {
+      return duplicatePairs.filter(
+        (p) =>
+          (p.work_a?.district || '').toLowerCase() === 'jaipur' ||
+          (p.work_b?.district || '').toLowerCase() === 'jaipur'
+      );
+    }
+    if (currentRole === 'STATE') {
+      return duplicatePairs.filter(
+        (p) =>
+          (p.work_a?.state || '').toLowerCase() === 'rajasthan' ||
+          (p.work_b?.state || '').toLowerCase() === 'rajasthan'
+      );
+    }
+    return duplicatePairs;
+  }, [duplicatePairs, currentRole]);
+
+  const scopedSummary = useMemo(() => {
+    if (!scopedWorks || scopedWorks.length === 0) return summary;
+    
+    // Dynamically calculate accurate summary KPIs for the role scope
+    const total_works = scopedWorks.length;
+    const critical_count = scopedWorks.filter((w) => w.risk_level === 'CRITICAL').length;
+    const high_count = scopedWorks.filter((w) => w.risk_level === 'HIGH').length;
+    const medium_count = scopedWorks.filter((w) => w.risk_level === 'MEDIUM').length;
+    const low_count = scopedWorks.filter((w) => w.risk_level === 'LOW').length;
+    const total_sanctioned_amount = scopedWorks.reduce((acc, w) => acc + (w.sanctioned_amount || 0), 0);
+    const flagged_amount = scopedWorks.reduce((acc, w) => (w.risk_level === 'CRITICAL' || w.risk_level === 'HIGH') ? acc + (w.sanctioned_amount || 0) : acc, 0);
+    const cost_anomalies_count = scopedWorks.filter((w) => (w.financial_risk || 0) >= 15).length;
+    const stagnation_count = scopedWorks.filter((w) => (w.delay_risk || 0) >= 14).length;
+    const duplicate_candidates_count = scopedDuplicatePairs.length;
+    const missing_docs_count = scopedWorks.filter((w) => (w.compliance_risk || 0) >= 5).length;
+
+    return {
+      total_works,
+      critical_count,
+      high_count,
+      medium_count,
+      low_count,
+      total_sanctioned_amount,
+      flagged_amount,
+      cost_anomalies_count,
+      stagnation_count,
+      duplicate_candidates_count,
+      missing_docs_count
+    };
+  }, [scopedWorks, scopedDuplicatePairs, summary]);
+
   return (
     <div className="flex h-screen bg-[#F7F8F6] text-[#1F2933] overflow-hidden">
       
@@ -176,8 +239,8 @@ function AppContent() {
               window.location.hash = '#/citizen';
             }
           }}
-          criticalCount={summary?.critical_count || 0}
-          works={works}
+          criticalCount={scopedSummary?.critical_count || 0}
+          works={scopedWorks}
           onSelectWork={handleSelectWork}
           onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
           onRefreshData={loadData}
@@ -226,6 +289,15 @@ function AppContent() {
             ) : (
               /* Standard Administrative Views */
               <>
+                {/* Role Context & Mission Banner */}
+                <RoleContextBanner
+                  currentRole={currentRole}
+                  scopedCount={scopedWorks.length}
+                  totalCount={works.length}
+                  onOpenSettings={() => setIsSettingsOpen(true)}
+                  onNavigateTab={navigateTab}
+                />
+
                 {/* 1. Risk Command Center (Overview) */}
                 {currentTab === 'COMMAND_CENTER' && (
                   <div className="space-y-6">
@@ -241,20 +313,20 @@ function AppContent() {
 
                     {/* Compact Interactive KPI Cards */}
                     <KPICards 
-                      summary={summary} 
+                      summary={scopedSummary} 
                       onSelectFilter={handleKPISelect}
                     />
 
                     {/* Today's Priority Works Table */}
                     <PriorityTable
-                      works={works}
+                      works={scopedWorks}
                       onSelectWork={handleSelectWork}
                       onViewAll={() => navigateTab('WORK_LIST')}
                     />
 
                     {/* Master Works Registry */}
                     <WorksTableView
-                      works={works}
+                      works={scopedWorks}
                       onSelectWork={handleSelectWork}
                       initialRiskFilter={initialRiskFilter}
                     />
@@ -264,7 +336,7 @@ function AppContent() {
                 {/* 2. Full Risk Works Registry */}
                 {currentTab === 'WORK_LIST' && (
                   <WorksTableView
-                    works={works}
+                    works={scopedWorks}
                     onSelectWork={handleSelectWork}
                     initialRiskFilter={initialRiskFilter}
                   />
@@ -273,7 +345,7 @@ function AppContent() {
                 {/* 3. Dedicated Cost Anomalies View */}
                 {currentTab === 'COST_ANOMALIES' && (
                   <CostAnomaliesView
-                    works={works}
+                    works={scopedWorks}
                     onSelectWork={handleSelectWork}
                   />
                 )}
@@ -281,7 +353,7 @@ function AppContent() {
                 {/* 4. Dedicated Delay & Stagnation View */}
                 {currentTab === 'DELAY_STAGNATION' && (
                   <DelayStagnationView
-                    works={works}
+                    works={scopedWorks}
                     onSelectWork={handleSelectWork}
                   />
                 )}
@@ -289,7 +361,7 @@ function AppContent() {
                 {/* 5. Dedicated Possible Duplicates View */}
                 {currentTab === 'DUPLICATES' && (
                   <DuplicatesView
-                    pairs={duplicatePairs}
+                    pairs={scopedDuplicatePairs}
                     onSelectWork={handleSelectWork}
                   />
                 )}
@@ -297,7 +369,7 @@ function AppContent() {
                 {/* 6. Geospatial Risk Map */}
                 {currentTab === 'MAP' && (
                   <RiskMapView
-                    works={works}
+                    works={scopedWorks}
                     onSelectWork={handleSelectWork}
                   />
                 )}
@@ -305,7 +377,7 @@ function AppContent() {
                 {/* 7. Reports & Orders */}
                 {currentTab === 'REPORTS' && (
                   <ReportsView
-                    works={works}
+                    works={scopedWorks}
                     onSelectWork={handleSelectWork}
                   />
                 )}
