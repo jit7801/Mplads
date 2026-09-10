@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import KPICards from './components/KPICards';
@@ -15,11 +15,14 @@ import CitizenView from './components/CitizenView';
 import { CardSkeleton, TableSkeleton } from './components/SkeletonLoader';
 import { fetchSummary, fetchWorks, fetchDuplicateCandidates } from './api/client';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { ToastProvider, useToast } from './components/Toast';
 
-export default function App() {
+function AppContent() {
+  const { addToast } = useToast();
   const [currentTab, setCurrentTab] = useState('COMMAND_CENTER');
   const [currentRole, setCurrentRole] = useState('DISTRICT');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Data state
   const [summary, setSummary] = useState(null);
@@ -31,6 +34,78 @@ export default function App() {
   // Active Work Dossier Inspection
   const [selectedWorkId, setSelectedWorkId] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [initialRiskFilter, setInitialRiskFilter] = useState('');
+
+  // 1. Sync URL Hash for Browser Back/Forward & Refresh state
+  const syncStateFromHash = useCallback(() => {
+    const hash = window.location.hash.replace(/^#\/?/, '');
+    if (!hash || hash === 'overview') {
+      setCurrentTab('COMMAND_CENTER');
+      setSelectedWorkId(null);
+    } else if (hash.startsWith('work/')) {
+      const wId = hash.replace('work/', '');
+      setSelectedWorkId(wId);
+    } else if (hash === 'works' || hash === 'work-list') {
+      setCurrentTab('WORK_LIST');
+      setSelectedWorkId(null);
+    } else if (hash === 'cost-anomalies') {
+      setCurrentTab('COST_ANOMALIES');
+      setSelectedWorkId(null);
+    } else if (hash === 'delay-stagnation') {
+      setCurrentTab('DELAY_STAGNATION');
+      setSelectedWorkId(null);
+    } else if (hash === 'duplicates') {
+      setCurrentTab('DUPLICATES');
+      setSelectedWorkId(null);
+    } else if (hash === 'map') {
+      setCurrentTab('MAP');
+      setSelectedWorkId(null);
+    } else if (hash === 'reports') {
+      setCurrentTab('REPORTS');
+      setSelectedWorkId(null);
+    } else if (hash === 'citizen') {
+      setCurrentRole('CITIZEN');
+      setSelectedWorkId(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    syncStateFromHash();
+    window.addEventListener('hashchange', syncStateFromHash);
+    return () => window.removeEventListener('hashchange', syncStateFromHash);
+  }, [syncStateFromHash]);
+
+  // Update hash when navigating
+  const navigateTab = (tab) => {
+    setCurrentTab(tab);
+    setSelectedWorkId(null);
+    setInitialRiskFilter('');
+    const tabToHash = {
+      COMMAND_CENTER: 'overview',
+      WORK_LIST: 'works',
+      COST_ANOMALIES: 'cost-anomalies',
+      DELAY_STAGNATION: 'delay-stagnation',
+      DUPLICATES: 'duplicates',
+      MAP: 'map',
+      REPORTS: 'reports'
+    };
+    window.location.hash = `#/${tabToHash[tab] || 'overview'}`;
+  };
+
+  const handleSelectWork = (workId) => {
+    setSelectedWorkId(workId);
+    window.location.hash = `#/work/${workId}`;
+  };
+
+  const handleBackToWorks = () => {
+    setSelectedWorkId(null);
+    window.location.hash = `#/works`;
+  };
+
+  const handleOpenDuplicateDiff = (workIdA, workIdB) => {
+    setSelectedWorkId(null);
+    navigateTab('DUPLICATES');
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -46,7 +121,7 @@ export default function App() {
       setDuplicatePairs(dupData.pairs || []);
     } catch (err) {
       console.error('API Fetch Error:', err);
-      setError('Unable to connect to the MPLADS Risk Intelligence engine at http://localhost:8001. Ensure the backend server is running.');
+      setError('Unable to connect to the MPLADS Risk Intelligence engine. Ensure the backend server is running.');
     } finally {
       setLoading(false);
     }
@@ -56,31 +131,36 @@ export default function App() {
     loadData();
   }, []);
 
-  const handleSelectWork = (workId) => {
-    setSelectedWorkId(workId);
-  };
-
-  const handleBackToWorks = () => {
-    setSelectedWorkId(null);
-  };
-
-  const handleOpenDuplicateDiff = (workIdA, workIdB) => {
-    setSelectedWorkId(null);
-    setCurrentTab('DUPLICATES');
+  const handleKPISelect = (kpiId) => {
+    if (kpiId === 'TOTAL') {
+      setInitialRiskFilter('');
+      navigateTab('WORK_LIST');
+    } else if (kpiId === 'HIGH') {
+      setInitialRiskFilter('HIGH');
+      navigateTab('WORK_LIST');
+      addToast('Filtered works registry by High Risk (Score 60–79).', 'info');
+    } else if (kpiId === 'CRITICAL') {
+      setInitialRiskFilter('CRITICAL');
+      navigateTab('WORK_LIST');
+      addToast('Filtered works registry by Critical Risk (Score 80+).', 'info');
+    } else if (kpiId === 'STAGNATION') {
+      navigateTab('DELAY_STAGNATION');
+    } else if (kpiId === 'DUPLICATE') {
+      navigateTab('DUPLICATES');
+    }
   };
 
   return (
     <div className="flex h-screen bg-[#F7F8F6] text-[#1F2933] overflow-hidden">
       
-      {/* Collapsible Left Sidebar */}
+      {/* Collapsible Left Sidebar (Desktop & Mobile Drawer) */}
       <Sidebar
         currentTab={currentTab}
-        setCurrentTab={(tab) => {
-          setCurrentTab(tab);
-          setSelectedWorkId(null);
-        }}
+        setCurrentTab={navigateTab}
         isCollapsed={isSidebarCollapsed}
         setIsCollapsed={setIsSidebarCollapsed}
+        isMobileOpen={isMobileSidebarOpen}
+        setIsMobileOpen={setIsMobileSidebarOpen}
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
@@ -90,24 +170,33 @@ export default function App() {
         {/* Top Header */}
         <Header
           currentRole={currentRole}
-          setCurrentRole={setCurrentRole}
+          setCurrentRole={(r) => {
+            setCurrentRole(r);
+            if (r === 'CITIZEN') {
+              window.location.hash = '#/citizen';
+            }
+          }}
           criticalCount={summary?.critical_count || 0}
+          works={works}
+          onSelectWork={handleSelectWork}
+          onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          onRefreshData={loadData}
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto px-6 py-6">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-6 py-4 sm:py-6">
+          <div className="max-w-7xl mx-auto space-y-6">
             
             {/* Backend Connection Warning */}
             {error && (
-              <div className="gov-card p-4 mb-6 border-[#F8D7DA] bg-[#FDF2F2] flex items-center justify-between text-xs">
+              <div className="gov-card p-4 border-[#F8D7DA] bg-[#FDF2F2] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2.5 text-[#B85C5C]">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{error}</span>
                 </div>
                 <button
                   onClick={loadData}
-                  className="btn-secondary py-1 px-2.5 text-xs text-[#B85C5C] border-[#F8D7DA] hover:bg-white"
+                  className="btn-secondary py-1 px-3 text-xs text-[#B85C5C] border-[#F8D7DA] hover:bg-white self-start sm:self-auto"
                 >
                   <RefreshCw className="w-3.5 h-3.5 inline mr-1" />
                   Retry Connection
@@ -130,6 +219,9 @@ export default function App() {
                 workId={selectedWorkId}
                 onBack={handleBackToWorks}
                 onOpenDuplicateDiff={handleOpenDuplicateDiff}
+                onViewOnMap={(wId) => {
+                  navigateTab('MAP');
+                }}
               />
             ) : (
               /* Standard Administrative Views */
@@ -143,24 +235,28 @@ export default function App() {
                         Risk Command Center
                       </h1>
                       <p className="text-xs text-[#667085]">
-                        Monitor works that may require attention and verification.
+                        Monitor high-risk infrastructure anomalies, progress gaps, and duplicate works across constituencies.
                       </p>
                     </div>
 
-                    {/* Compact KPI Cards */}
-                    <KPICards summary={summary} />
+                    {/* Compact Interactive KPI Cards */}
+                    <KPICards 
+                      summary={summary} 
+                      onSelectFilter={handleKPISelect}
+                    />
 
                     {/* Today's Priority Works Table */}
                     <PriorityTable
                       works={works}
                       onSelectWork={handleSelectWork}
-                      onViewAll={() => setCurrentTab('WORK_LIST')}
+                      onViewAll={() => navigateTab('WORK_LIST')}
                     />
 
                     {/* Master Works Registry */}
                     <WorksTableView
                       works={works}
                       onSelectWork={handleSelectWork}
+                      initialRiskFilter={initialRiskFilter}
                     />
                   </div>
                 )}
@@ -170,6 +266,7 @@ export default function App() {
                   <WorksTableView
                     works={works}
                     onSelectWork={handleSelectWork}
+                    initialRiskFilter={initialRiskFilter}
                   />
                 )}
 
@@ -228,5 +325,13 @@ export default function App() {
       />
 
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
   );
 }
