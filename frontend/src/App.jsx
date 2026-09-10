@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import KPICards from './components/KPICards';
@@ -226,6 +227,9 @@ export default function App() {
         onClose={() => setIsSettingsOpen(false)}
         onWeightsApplied={loadData}
       />
+
+      {/* Vercel Analytics */}
+      <Analytics />
 
     </div>
   );
