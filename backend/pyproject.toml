@@ -1,0 +1,20 @@
+[project]
+name = "mplads-backend"
+version = "1.0.0"
+description = "Explainable Risk Intelligence Layer for MPLADS Scheme (SIH26102)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.0.0",
+    "pandas>=2.0.0",
+    "numpy>=1.26.0",
+    "scikit-learn>=1.4.0",
+]
+
+[tool.vercel]
+entrypoint = "main:app"
+
+[tool.fastapi]
+entrypoint = "main:app"
