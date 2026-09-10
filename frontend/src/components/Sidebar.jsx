@@ -12,6 +12,7 @@ import {
   ChevronRight,
   ShieldAlert
 } from 'lucide-react';
+import Logo from './Logo';
 
 export default function Sidebar({ 
   currentTab, 
@@ -37,20 +38,8 @@ export default function Sidebar({
       }`}
     >
       {/* Brand Header */}
-      <div className="h-16 flex items-center px-4 border-b border-[#E4E7EC] gap-3">
-        <div className="w-8 h-8 rounded-lg bg-[#183B56] text-white flex items-center justify-center shrink-0 shadow-sm">
-          <ShieldAlert className="w-4 h-4" />
-        </div>
-        {!isCollapsed && (
-          <div className="overflow-hidden">
-            <h1 className="text-[13px] font-bold text-[#1F2933] leading-tight truncate">
-              MPLADS Risk Intel
-            </h1>
-            <p className="text-[11px] text-[#667085] truncate font-normal">
-              Decision Support System
-            </p>
-          </div>
-        )}
+      <div className="h-16 flex items-center px-3.5 border-b border-[#E4E7EC] overflow-hidden">
+        <Logo collapsed={isCollapsed} size="md" />
       </div>
 
       {/* Navigation Links */}

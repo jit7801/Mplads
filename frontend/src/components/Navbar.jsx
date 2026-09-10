@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldAlert, MapPin, Layers, Sliders, CheckCircle2, Building2, UserCheck, AlertTriangle } from 'lucide-react';
+import Logo from './Logo';
 
 export default function Navbar({ 
   currentTab, 
@@ -22,22 +23,7 @@ export default function Navbar({
         <div className="flex items-center justify-between h-16">
           
           {/* Brand Logo & Title */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-800 flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-400/30">
-              <ShieldAlert className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-lg tracking-tight text-white">MPLADS ERIL</span>
-                <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded">
-                  SIH26102
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 font-medium">
-                Explainable Risk Intelligence Layer for eSAKSHI
-              </p>
-            </div>
-          </div>
+          <Logo theme="dark" size="lg" />
 
           {/* Navigation Tabs */}
           <nav className="hidden md:flex items-center space-x-1">
