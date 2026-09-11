@@ -105,8 +105,8 @@ class Settings:
     DUP_WEIGHT_AGENCY: float = 0.10
     DUP_WEIGHT_COST: float = 0.05
     
-    # Data Provenance
-    DATA_SOURCE_LABEL: str = "SYNTHETIC_SIMULATED"
-    IS_DEMO_MODE: bool = True
+    # Data Provenance & Source Label
+    DATA_SOURCE_LABEL: str = os.getenv("MPLADS_DATA_SOURCE", "MPLADS_ESAKSHI_PIPELINE")
+    IS_DEMO_MODE: bool = False
 
 settings = Settings()

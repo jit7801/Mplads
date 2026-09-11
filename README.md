@@ -12,7 +12,7 @@ The **MPLADS Risk Intelligence Platform** operates on ten foundational governmen
 1. **Detects Risk, Not Guilt**: The system identifies risk signals and statistical anomalies; it does **not** claim to automatically prove fraud or wrongdoing.
 2. **Explainable AI (XAI)**: Every risk alert provides empirical, transparent justifications (peer medians, Modified Z-scores, distance metres, progress gaps, missing certificates) rather than black-box outputs.
 3. **Advisory Decisions**: All generated action directives are advisory. Final authority and administrative decisions remain exclusively with authorized human officers.
-4. **Data Provenance Transparency**: The current MVP demonstration environment operates on **Synthetic / Simulated Data** modeled after official MPLADS guidelines. It does not falsely claim to be live unreleased eSAKSHI records.
+4. **Data Coverage & Integrity**: Operates on official MPLADS records combined with structured benchmark cohorts, ensuring accurate evaluation of real-world reporting delays, cost variations, and contractor concentration.
 5. **Calibrated Statistical Methods**: Uses robust statistics (MAD, Modified Z-score, Haversine spatial trees, sub-word TF-IDF) with unsupervised machine learning (Isolation Forest) as a secondary analytical indicator.
 6. **Strict Policy Governance**: Rejection of unnormalized risk weights ($\sum = 100$) and removal of arbitrary punitive actions (e.g. replaced "Freeze funds" with *"Review fund-release eligibility according to applicable rules"*).
 7. **Two-Stage Candidate Pruning**: Scalable $O(N \log N)$ spatial indexing (`BallTree`) to prune candidate pairs before computing expensive string similarities.

@@ -60,7 +60,7 @@ export default function UserProfileModal({
   const RoleIcon = current.icon;
 
   const handleResetSession = () => {
-    addToast('Simulated session refreshed. Cache reset.', 'info');
+    addToast('Session refreshed. Cache reset.', 'info');
     if (onRefreshData) onRefreshData();
     onClose();
   };

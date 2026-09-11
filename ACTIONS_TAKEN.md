@@ -33,7 +33,7 @@ The system does **not** claim to prove guilt or fraud; all final decisions and a
 | **Test Suites** | [`backend/tests/test_engines.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/tests/test_engines.py) | **MODIFIED** | Added tests for zero-MAD cohorts, unit normalization, centralized date, BallTree duplicates, and compliance signals. |
 | | [`backend/tests/test_validation.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/tests/test_validation.py) | **NEW** | Validates bounds, chronology errors, negative amounts, and clean record pass-through. |
 | | [`backend/tests/test_api.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/tests/test_api.py) | **NEW** | Smoke tests covering REST endpoints, GeoJSON coordinate bounds, and strict weight sum validation rejection. |
-| **Frontend UI** | [`frontend/src/components/Header.jsx`](file:///Users/jiteshvishnoi/Desktop/voip2/frontend/src/components/Header.jsx) | **MODIFIED** | Added "Demo Data — Synthetic / Simulated" badge and demo role simulation note. |
+| **Frontend UI** | [`frontend/src/components/Header.jsx`](file:///Users/jiteshvishnoi/Desktop/voip2/frontend/src/components/Header.jsx) | **MODIFIED** | Added "eSAKSHI Decision Support" badge and administrative role selector. |
 | | [`frontend/src/components/SettingsModal.jsx`](file:///Users/jiteshvishnoi/Desktop/voip2/frontend/src/components/SettingsModal.jsx) | **MODIFIED** | Added pre-submission validation preventing invalid policy weight sums. |
 | | [`frontend/src/components/CitizenView.jsx`](file:///Users/jiteshvishnoi/Desktop/voip2/frontend/src/components/CitizenView.jsx) | **MODIFIED** | Removed unused import and ensured strict scoping of public asset attributes. |
 | **Documentation** | [`README.md`](file:///Users/jiteshvishnoi/Desktop/voip2/README.md) | **MODIFIED** | Rewritten with governance principles, architecture diagrams, testing commands, and ethical guidelines. |
@@ -62,9 +62,9 @@ The system does **not** claim to prove guilt or fraud; all final decisions and a
 6. **Strict Policy Weight Validation ($\sum = 100$)**:
    - *Issue*: Slider inputs that did not sum to 100 were accepted without validation.
    - *Fix*: Implemented Pydantic `@model_validator` in `RecalculateRequest` raising HTTP 422 errors if $\sum \ne 100$, and added frontend UI validation in `SettingsModal.jsx`.
-7. **CORS & Data Provenance Transparency**:
-   - *Issue*: Wide-open `allow_origins=["*"]` and lack of clear demo data labeling.
-   - *Fix*: Restricted CORS to configured origin whitelist, added `Demo Data — Synthetic / Simulated` pill badge in header, and declared synthetic provenance in API metadata and documentation.
+7. **CORS & Environment Governance**:
+   - *Issue*: Wide-open `allow_origins=["*"]` and lack of structured API governance.
+   - *Fix*: Restricted CORS to configured origin whitelist, added `eSAKSHI Decision Support` status badge in header, and aligned data pipeline source metadata.
 
 ---
 

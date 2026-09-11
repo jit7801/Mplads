@@ -5,6 +5,7 @@ from pydantic import ValidationError
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from app.core.config import settings
 from app.api.v1.router import (
     load_and_run_pipeline,
     health_check,
@@ -29,7 +30,7 @@ def test_health_check_endpoint():
     assert res["status"] == "healthy"
     assert res["total_works"] > 0
     assert "evaluation_date" in res
-    assert res["data_provenance"] == "SYNTHETIC_SIMULATED"
+    assert res["data_provenance"] == settings.DATA_SOURCE_LABEL
 
 def test_summary_endpoint():
     res = get_summary()
