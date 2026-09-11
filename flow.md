@@ -29,14 +29,22 @@ This document details the operational, data, algorithmic, and interaction flows 
 |                                                                                             |
 |  +---------------------------+ +----------------------------+ +---------------------------+ |
 |  |     MODULE 1: COST        | |      MODULE 2: DELAY       | |    MODULE 3: DUPLICATE    | |
-|  | - Cohort Stratification   | | - Milestone drift tracking | | - Spatial Bounding (<=150m)| |
-|  |   (Category x District)   | | - Inactivity Clock (days)  | | - Char/Word TF-IDF n-grams| |
-|  | - Cohort Median & MAD     | | - Progress Gap (% Fin - %  | | - Cosine Similarity       | |
-|  | - Modified Z-Score        | |   Phys)                    | | - Budget & Agency Match   | |
-|  | - Isolation Forest        | | - Milestone S-Curve drift  | | - Weighted Duplicate Index| |
+|  | - Multi-Tier Cohorts      | | - Centralized Eval Date    | | - BallTree O(N log N)     | |
+|  |   (Dist/State/Natl)       | | - Inactivity Clock (days)  | |   Spatial Candidate Index | |
+|  | - Unit Cost Normalization | | - Progress Gap (% Fin - %  | | - Char/Word TF-IDF n-grams| |
+|  | - Cohort Median & MAD     | |   Phys)                    | | - Cosine Similarity       | |
+|  | - Modified Z-Score        | | - Milestone S-Curve drift  | | - Budget & Agency Match   | |
+|  | - Isolation Forest (XAI)  | | - Configurable thresholds  | | - Weighted Duplicate Index| |
 |  +-------------+-------------+ +--------------+-------------+ +-------------+-------------+ |
 |                |                              |                             |               |
 |                +------------------------------+-----------------------------+               |
+|                                               |                                             |
+|                                +--------------+--------------+                              |
+|                                |     MODULE 4: COMPLIANCE    |                              |
+|                                | - Disaggregated Certificates|                              |
+|                                | - Utilization / Completion  |                              |
+|                                | - Asset Register & Geotag   |                              |
+|                                +--------------+--------------+                              |
 |                                               |                                             |
 +-----------------------------------------------+---------------------------------------------+
                                                 v

@@ -27,6 +27,10 @@ export default function SettingsModal({ isOpen, onClose, onWeightsApplied }) {
   const isValidTotal = total === 100;
 
   const handleApply = async () => {
+    if (!isValidTotal) {
+      addToast(`Total policy weights must sum to exactly 100%. Current total: ${total}%.`, 'error');
+      return;
+    }
     setIsSubmitting(true);
     try {
       await recalculateRiskWeights({

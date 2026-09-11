@@ -1,14 +1,16 @@
-from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel
-from typing import Optional, List
+import logging
+from typing import Optional, List, Dict, Any
+from fastapi import APIRouter, HTTPException, Query, status
+from pydantic import BaseModel, Field, model_validator
 import pandas as pd
 from app.core.config import settings
 from app.engines.risk_engine import run_full_risk_pipeline
 
+logger = logging.getLogger("mplads.api")
 router = APIRouter()
 
 # In-memory storage for cached analysis results
-_DATA_CACHE = {
+_DATA_CACHE: Dict[str, Any] = {
     "df": None,
     "works": [],
     "works_map": {},
@@ -21,7 +23,7 @@ _DATA_CACHE = {
 }
 
 def compute_mp_metrics(mps_df: pd.DataFrame, works: list[dict]) -> tuple[list[dict], dict]:
-    works_by_mp = {}
+    works_by_mp: Dict[str, list[dict]] = {}
     for w in works:
         mp = str(w.get("mp_name", "")).strip().lower()
         if mp:
@@ -45,7 +47,7 @@ def compute_mp_metrics(mps_df: pd.DataFrame, works: list[dict]) -> tuple[list[di
         total_spent = sum(float(w.get("actual_expenditure", 0.0)) for w in mp_works)
         high_risk_count = sum(1 for w in mp_works if w.get("risk_level") in ["CRITICAL", "HIGH"])
         avg_risk = round(sum(float(w.get("overall_risk_score", 0.0)) for w in mp_works) / len(mp_works), 1) if mp_works else 0.0
-        util_rate = round((total_sanctioned / allocated * 100), 2) if allocated > 0 else 0.0
+        util_rate = round((total_sanctioned / allocated * 100.0), 2) if allocated > 0 else 0.0
         rem_balance = round(max(0.0, allocated - total_sanctioned), 2)
         
         entry = {
@@ -68,9 +70,11 @@ def compute_mp_metrics(mps_df: pd.DataFrame, works: list[dict]) -> tuple[list[di
     return mp_list, mp_map
 
 def load_and_run_pipeline():
+    logger.info("Loading MPLADS analytical pipeline...")
     try:
         df = pd.read_csv(settings.DATA_PATH)
     except Exception as e:
+        logger.warning(f"Failed to load from {settings.DATA_PATH}, falling back to default relative path. Error: {e}")
         df = pd.read_csv("../data/synthetic_mplads_works.csv")
         
     df = df.fillna("")
@@ -96,39 +100,51 @@ def load_and_run_pipeline():
         mps_list, mps_map = compute_mp_metrics(mps_df, works)
         _DATA_CACHE["mps_list"] = mps_list
         _DATA_CACHE["mps_map"] = mps_map
-        print(f"[PIPELINE INITIALIZED] Loaded {len(works)} evaluated records & {len(mps_list)} MP allocations.")
+        logger.info(f"[PIPELINE INITIALIZED] Loaded {len(works)} works & {len(mps_list)} MP records.")
     else:
-        print(f"[PIPELINE INITIALIZED] Loaded {len(works)} evaluated records.")
+        logger.info(f"[PIPELINE INITIALIZED] Loaded {len(works)} works.")
 
 class RecalculateRequest(BaseModel):
-    weight_financial: float = 30.0
-    weight_delay: float = 30.0
-    weight_duplicate: float = 25.0
-    weight_compliance: float = 15.0
+    weight_financial: float = Field(30.0, ge=0.0, le=100.0, description="Financial Risk dimension weight")
+    weight_delay: float = Field(30.0, ge=0.0, le=100.0, description="Delay & Stagnation dimension weight")
+    weight_duplicate: float = Field(25.0, ge=0.0, le=100.0, description="Duplicate Overlap dimension weight")
+    weight_compliance: float = Field(15.0, ge=0.0, le=100.0, description="Statutory Compliance dimension weight")
+
+    @model_validator(mode="after")
+    def validate_weights_sum(self):
+        total = self.weight_financial + self.weight_delay + self.weight_duplicate + self.weight_compliance
+        if abs(total - 100.0) > 0.01:
+            raise ValueError(f"Total risk weights must sum to exactly 100.0. Current total is {total:.1f}.")
+        return self
 
 @router.get("/health")
 def health_check():
+    """Service liveness & pipeline readiness health check."""
     return {
         "status": "healthy",
         "service": settings.PROJECT_NAME,
-        "total_works": len(_DATA_CACHE["works"])
+        "version": settings.VERSION,
+        "total_works": len(_DATA_CACHE["works"]),
+        "evaluation_date": settings.EVALUATION_DATE,
+        "is_demo_mode": settings.IS_DEMO_MODE,
+        "data_provenance": settings.DATA_SOURCE_LABEL
     }
 
 @router.get("/summary")
 def get_summary(district: Optional[str] = None, state: Optional[str] = None):
-    """Returns high-level KPI metrics for executive overview."""
+    """Returns high-level KPI metrics for executive overview with data provenance."""
     works = _DATA_CACHE["works"]
     if state:
-        works = [w for w in works if w["state"] == state]
+        works = [w for w in works if w["state"].lower() == state.lower()]
     if district:
-        works = [w for w in works if w["district"] == district]
+        works = [w for w in works if w["district"].lower() == district.lower()]
         
     crit = sum(1 for w in works if w["risk_level"] == "CRITICAL")
     high = sum(1 for w in works if w["risk_level"] == "HIGH")
     med = sum(1 for w in works if w["risk_level"] == "MEDIUM")
     low = sum(1 for w in works if w["risk_level"] == "LOW")
-    total_amt = sum(w["sanctioned_amount"] for w in works)
-    flagged_amt = sum(w["sanctioned_amount"] for w in works if w["risk_level"] in ["CRITICAL", "HIGH"])
+    total_amt = sum(float(w.get("sanctioned_amount", 0.0)) for w in works)
+    flagged_amt = sum(float(w.get("sanctioned_amount", 0.0)) for w in works if w["risk_level"] in ["CRITICAL", "HIGH"])
     
     return {
         "total_works": len(works),
@@ -141,7 +157,10 @@ def get_summary(district: Optional[str] = None, state: Optional[str] = None):
         "cost_anomalies_count": sum(1 for w in works if w["financial_risk"] >= 15),
         "stagnation_count": sum(1 for w in works if w["delay_risk"] >= 14),
         "duplicate_candidates_count": len(_DATA_CACHE["dup_pairs"]),
-        "missing_docs_count": sum(1 for w in works if w["compliance_risk"] >= 5)
+        "missing_docs_count": sum(1 for w in works if w["compliance_risk"] >= 5),
+        "evaluation_date": settings.EVALUATION_DATE,
+        "data_provenance": settings.DATA_SOURCE_LABEL,
+        "is_demo_mode": settings.IS_DEMO_MODE
     }
 
 @router.get("/works")
@@ -157,7 +176,7 @@ def get_works(
     limit: int = 50,
     offset: int = 0
 ):
-    """Returns filtered and paginated list of works ordered by risk priority."""
+    """Returns filtered and paginated list of works ordered by risk priority score."""
     items = _DATA_CACHE["works"]
     
     if state:
@@ -199,24 +218,21 @@ def get_works(
 @router.get("/works/{work_id}")
 def get_work_by_id(work_id: str):
     """Returns complete record of a single project."""
-    work = _DATA_CACHE["works_map"].get(work_id)
+    work = _DATA_CACHE["works_map"].get(work_id.strip())
     if not work:
-        raise HTTPException(status_code=404, detail=f"Work ID {work_id} not found.")
+        raise HTTPException(status_code=404, detail=f"Work ID '{work_id}' not found.")
     return work
 
 @router.get("/works/{work_id}/explanation")
 def get_work_explanation(work_id: str):
     """Returns forensic explainability dossier for a specific project."""
-    work = _DATA_CACHE["works_map"].get(work_id)
+    work = _DATA_CACHE["works_map"].get(work_id.strip())
     if not work:
-        raise HTTPException(status_code=404, detail=f"Work ID {work_id} not found.")
+        raise HTTPException(status_code=404, detail=f"Work ID '{work_id}' not found.")
         
     c_eval = work.get("cost_evaluation", {})
-    cohort_stats = c_eval.get("cohort_stats", None)
-    
-    # Check if there is an associated duplicate pair
-    dup_match = None
     u_eval = work.get("duplicate_evaluation", {})
+    dup_match = None
     if u_eval.get("has_candidate") and u_eval.get("paired_work_id"):
         paired_id = u_eval["paired_work_id"]
         paired_work = _DATA_CACHE["works_map"].get(paired_id)
@@ -226,7 +242,8 @@ def get_work_explanation(work_id: str):
                 "paired_work": paired_work,
                 "distance_meters": u_eval.get("distance_meters"),
                 "text_similarity": u_eval.get("text_similarity"),
-                "combined_score": u_eval.get("combined_score")
+                "combined_score": u_eval.get("combined_score"),
+                "verification_status": u_eval.get("verification_status")
             }
             
     return {
@@ -249,50 +266,59 @@ def get_work_explanation(work_id: str):
         "cost_evaluation": c_eval,
         "delay_evaluation": work.get("delay_evaluation", {}),
         "duplicate_evaluation": u_eval,
-        "cohort_stats": cohort_stats,
-        "duplicate_match": dup_match
+        "compliance_evaluation": work.get("compliance_evaluation", {}),
+        "duplicate_match": dup_match,
+        "data_quality_warnings": work.get("data_quality_warnings", []),
+        "data_source": work.get("data_source", settings.DATA_SOURCE_LABEL),
+        "evaluation_date": settings.EVALUATION_DATE
     }
 
 @router.get("/anomalies/duplicates")
 def get_duplicate_candidates():
-    """Returns candidate duplicate and overlapping work pairs for side-by-side verification."""
+    """Returns spatial and semantic overlapping asset pairs for auditor inspection."""
     return {
         "total_pairs": len(_DATA_CACHE["dup_pairs"]),
-        "pairs": _DATA_CACHE["dup_pairs"]
+        "duplicate_pairs": _DATA_CACHE["dup_pairs"]
     }
 
 @router.get("/map/layers")
 def get_map_layers(state: Optional[str] = None, district: Optional[str] = None):
-    """Returns GeoJSON FeatureCollection of all works color-coded by risk."""
+    """Returns GeoJSON FeatureCollection of all works with valid coordinates, color-coded by risk."""
     works = _DATA_CACHE["works"]
     if state:
-        works = [w for w in works if w["state"] == state]
+        works = [w for w in works if w["state"].lower() == state.lower()]
     if district:
-        works = [w for w in works if w["district"] == district]
+        works = [w for w in works if w["district"].lower() == district.lower()]
         
     features = []
     for w in works:
-        if w.get("latitude") and w.get("longitude"):
-            features.append({
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [w["longitude"], w["latitude"]]
-                },
-                "properties": {
-                    "work_id": w["work_id"],
-                    "work_title": w["work_title"],
-                    "work_category": w["work_category"],
-                    "district": w["district"],
-                    "state": w["state"],
-                    "overall_risk_score": w["overall_risk_score"],
-                    "risk_level": w["risk_level"],
-                    "primary_risk_factor": w["primary_risk_factor"],
-                    "sanctioned_amount": w["sanctioned_amount"],
-                    "physical_progress": w["physical_progress"],
-                    "financial_progress": w["financial_progress"]
-                }
-            })
+        try:
+            lat = float(w.get("latitude"))
+            lon = float(w.get("longitude"))
+            # Coordinate bounding check for India
+            if 8.0 <= lat <= 37.5 and 68.0 <= lon <= 97.5:
+                features.append({
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [lon, lat]
+                    },
+                    "properties": {
+                        "work_id": w["work_id"],
+                        "work_title": w["work_title"],
+                        "work_category": w["work_category"],
+                        "district": w["district"],
+                        "state": w["state"],
+                        "overall_risk_score": w["overall_risk_score"],
+                        "risk_level": w["risk_level"],
+                        "primary_risk_factor": w["primary_risk_factor"],
+                        "sanctioned_amount": w["sanctioned_amount"],
+                        "physical_progress": w["physical_progress"],
+                        "financial_progress": w["financial_progress"]
+                    }
+                })
+        except (ValueError, TypeError):
+            continue
             
     return {
         "type": "FeatureCollection",
@@ -301,10 +327,10 @@ def get_map_layers(state: Optional[str] = None, district: Optional[str] = None):
 
 @router.post("/simulate/recalculate")
 def recalculate_risk_scores(req: RecalculateRequest):
-    """Dynamically re-evaluates all scores when hackathon judges adjust weight sliders."""
+    """Dynamically re-evaluates all scores when policy sliders are adjusted. Rejects invalid weight totals."""
     df = _DATA_CACHE["df"]
     if df is None:
-        raise HTTPException(status_code=500, detail="Data not loaded")
+        raise HTTPException(status_code=500, detail="Underlying dataset not initialized.")
         
     works, summary, dup_pairs, cohort_stats = run_full_risk_pipeline(
         df,
@@ -327,7 +353,13 @@ def recalculate_risk_scores(req: RecalculateRequest):
         _DATA_CACHE["mps_map"] = mps_map
         
     return {
-        "message": "Risk scores successfully recalculated",
+        "message": "Risk scores successfully recalculated with calibrated policy weights",
+        "calibrated_weights": {
+            "financial": req.weight_financial,
+            "delay": req.weight_delay,
+            "duplicate": req.weight_duplicate,
+            "compliance": req.weight_compliance
+        },
         "new_summary": summary
     }
 
@@ -353,14 +385,13 @@ def get_mps(
         items = [
             m for m in items 
             if s_lower in m["mp_name"].lower() 
-            or s_lower in m["constituency"].lower()
+            or s_lower in m["constituency"].lower() 
             or s_lower in m["state"].lower()
         ]
         
     total = len(items)
     paginated = items[offset : offset + limit]
     
-    # Executive overview across filtered or total set
     total_alloc = sum(m["allocated_amount"] for m in items)
     total_sanct = sum(m["total_sanctioned_amount"] for m in items)
     total_exp = sum(m["total_expenditure"] for m in items)
@@ -374,7 +405,7 @@ def get_mps(
             "total_allocated_amount": round(total_alloc, 2),
             "total_sanctioned_amount": round(total_sanct, 2),
             "total_expenditure": round(total_exp, 2),
-            "overall_utilization_rate": round((total_sanct / total_alloc * 100), 2) if total_alloc > 0 else 0.0
+            "overall_utilization_rate": round((total_sanct / total_alloc * 100.0), 2) if total_alloc > 0 else 0.0
         },
         "items": paginated
     }
@@ -385,7 +416,6 @@ def get_mp_details(mp_name: str):
     mp_key = mp_name.strip().lower()
     mp_meta = _DATA_CACHE.get("mps_map", {}).get(mp_key)
     
-    # Fuzzy/partial match if exact match not found
     if not mp_meta:
         for k, v in _DATA_CACHE.get("mps_map", {}).items():
             if mp_key in k or k in mp_key:
@@ -395,7 +425,6 @@ def get_mp_details(mp_name: str):
     if not mp_meta:
         raise HTTPException(status_code=404, detail=f"MP '{mp_name}' not found.")
         
-    # Get all works for this MP
     works = [w for w in _DATA_CACHE["works"] if mp_meta["mp_name"].lower() in str(w.get("mp_name", "")).lower()]
     
     return {
@@ -408,9 +437,7 @@ def get_mp_details(mp_name: str):
 def get_state_summaries():
     """Returns state-wise summary of MP allocations, sanctioned projects, and risk metrics."""
     mps = _DATA_CACHE.get("mps_list", [])
-    works = _DATA_CACHE["works"]
-    
-    state_map = {}
+    state_map: Dict[str, Dict[str, Any]] = {}
     for m in mps:
         st = m["state"]
         if st not in state_map:
@@ -434,7 +461,7 @@ def get_state_summaries():
     for st, v in sorted(state_map.items()):
         alloc = v["total_allocated_amount"]
         sanct = v["total_sanctioned_amount"]
-        v["utilization_percentage"] = round((sanct / alloc * 100), 2) if alloc > 0 else 0.0
+        v["utilization_percentage"] = round((sanct / alloc * 100.0), 2) if alloc > 0 else 0.0
         v["total_allocated_amount"] = round(alloc, 2)
         v["total_sanctioned_amount"] = round(sanct, 2)
         v["total_expenditure"] = round(v["total_expenditure"], 2)

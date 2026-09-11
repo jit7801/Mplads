@@ -1,18 +1,25 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+import logging
 from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.v1.router import router as api_router, load_and_run_pipeline
 
+# Configure application logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
+logger = logging.getLogger("mplads.main")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Run pipeline and cache results in memory
-    print(f"[*] Starting {settings.PROJECT_NAME} v{settings.VERSION}...")
+    logger.info(f"Starting {settings.PROJECT_NAME} v{settings.VERSION}...")
     load_and_run_pipeline()
-    print("[*] Pipelines ready. Service live.")
+    logger.info("[*] Analytical engines initialized and cached in memory. Service ready.")
     yield
-    # Shutdown: Clean up if needed
-    print("[*] Shutting down service.")
+    logger.info("[*] Shutting down service cleanly.")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -21,12 +28,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Enable CORS for local React/Vite development and external frontends
+# CORS configuration with configurable whitelist
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS if settings.CORS_ORIGINS else ["*"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -39,7 +46,10 @@ def root():
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION,
         "docs_url": "/docs",
-        "api_v1": settings.API_V1_STR
+        "api_v1": settings.API_V1_STR,
+        "data_provenance": settings.DATA_SOURCE_LABEL,
+        "is_demo_mode": settings.IS_DEMO_MODE,
+        "evaluation_date": settings.EVALUATION_DATE
     }
 
 if __name__ == "__main__":

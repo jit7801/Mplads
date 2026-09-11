@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { Search, MapPin, Building2, ExternalLink, FilterX, Eye, X, CheckCircle2, AlertCircle } from 'lucide-react';
-import RiskBadge from './RiskBadge';
 
 export default function CitizenView({ works = [] }) {
   const [search, setSearch] = useState('');
