@@ -48,9 +48,6 @@ export default function Header({
               <span className="text-xs sm:text-sm font-bold text-[#1F2933] truncate">
                 MPLADS Risk Intelligence
               </span>
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F2F4F7] text-[#475467] border border-[#E4E7EC]">
-                Demo Data — Synthetic / Simulated
-              </span>
               <span className="hidden 2xl:inline text-[11px] text-[#667085] truncate">
                 — Early warning, empirical evidence and action for every work.
               </span>
