@@ -35,3 +35,23 @@ export async function recalculateRiskWeights(weights) {
   if (!res.ok) throw new Error("Failed to recalculate risk scores");
   return res.json();
 }
+
+export async function fetchMps(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const res = await fetch(`${API_BASE_URL}/mps?${query}`);
+  if (!res.ok) throw new Error("Failed to fetch MP allocations");
+  return res.json();
+}
+
+export async function fetchMpDetails(mpName) {
+  const res = await fetch(`${API_BASE_URL}/mps/${encodeURIComponent(mpName)}`);
+  if (!res.ok) throw new Error(`Failed to fetch details for MP ${mpName}`);
+  return res.json();
+}
+
+export async function fetchStates() {
+  const res = await fetch(`${API_BASE_URL}/states`);
+  if (!res.ok) throw new Error("Failed to fetch state summaries");
+  return res.json();
+}
+

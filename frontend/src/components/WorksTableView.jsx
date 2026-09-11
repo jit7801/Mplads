@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import RiskBadge from './RiskBadge';
-import { 
-  Search, 
-  X, 
-  Download, 
-  ChevronLeft, 
-  ChevronRight, 
-  ArrowUpDown, 
+import {
+  Search,
+  X,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
   FilterX,
   SlidersHorizontal,
   LayoutGrid,
@@ -144,7 +144,7 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
 
   return (
     <div className="space-y-4">
-      
+
       {/* Title & Actions Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -161,9 +161,8 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
           <div className="flex items-center bg-[#F2F4F7] p-0.5 rounded-md border border-[#EAECF0]">
             <button
               onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded transition-colors ${
-                viewMode === 'table' ? 'bg-white text-[#183B56] shadow-xs' : 'text-[#667085] hover:text-[#1F2933]'
-              }`}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'table' ? 'bg-white text-[#183B56] shadow-xs' : 'text-[#667085] hover:text-[#1F2933]'
+                }`}
               title="Table View"
               aria-label="Switch to table view"
             >
@@ -171,9 +170,8 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded transition-colors ${
-                viewMode === 'grid' ? 'bg-white text-[#183B56] shadow-xs' : 'text-[#667085] hover:text-[#1F2933]'
-              }`}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'bg-white text-[#183B56] shadow-xs' : 'text-[#667085] hover:text-[#1F2933]'
+                }`}
               title="Card Grid View"
               aria-label="Switch to grid view"
             >
@@ -195,10 +193,10 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
 
       {/* Filter Toolbar */}
       <div className="gov-card p-3 sm:p-4 space-y-3">
-        
+
         {/* Search & Main Selectors */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5">
-          
+
           {/* Search Input */}
           <div className="lg:col-span-2 relative">
             <Search className="w-3.5 h-3.5 text-[#98A2B3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -393,7 +391,7 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
             <table className="w-full text-left border-collapse gov-table min-w-[760px]">
               <thead>
                 <tr>
-                  <th 
+                  <th
                     onClick={() => toggleSort('work_id')}
                     className="cursor-pointer hover:bg-[#F2F4F7] transition-colors"
                   >
@@ -402,7 +400,7 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
                       <ArrowUpDown className="w-3 h-3 text-[#98A2B3]" />
                     </div>
                   </th>
-                  <th 
+                  <th
                     onClick={() => toggleSort('district')}
                     className="cursor-pointer hover:bg-[#F2F4F7] transition-colors"
                   >
@@ -412,7 +410,7 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
                     </div>
                   </th>
                   <th>Category</th>
-                  <th 
+                  <th
                     onClick={() => toggleSort('sanctioned_amount')}
                     className="cursor-pointer hover:bg-[#F2F4F7] transition-colors"
                   >
@@ -422,7 +420,7 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
                     </div>
                   </th>
                   <th>Progress (Phys / Fin)</th>
-                  <th 
+                  <th
                     onClick={() => toggleSort('overall_risk_score')}
                     className="cursor-pointer hover:bg-[#F2F4F7] transition-colors"
                   >
@@ -544,11 +542,10 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
                   <button
                     key={pNum}
                     onClick={() => setCurrentPage(pNum)}
-                    className={`w-7 h-7 rounded-md font-medium text-xs transition-colors ${
-                      currentPage === pNum
+                    className={`w-7 h-7 rounded-md font-medium text-xs transition-colors ${currentPage === pNum
                         ? 'bg-[#183B56] text-white'
                         : 'text-[#475467] hover:bg-[#F2F4F7]'
-                    }`}
+                      }`}
                   >
                     {pNum}
                   </button>

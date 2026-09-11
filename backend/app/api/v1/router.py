@@ -14,17 +14,65 @@ _DATA_CACHE = {
     "works_map": {},
     "summary": {},
     "dup_pairs": [],
-    "cohort_stats": {}
+    "cohort_stats": {},
+    "mps_df": None,
+    "mps_list": [],
+    "mps_map": {}
 }
+
+def compute_mp_metrics(mps_df: pd.DataFrame, works: list[dict]) -> tuple[list[dict], dict]:
+    works_by_mp = {}
+    for w in works:
+        mp = str(w.get("mp_name", "")).strip().lower()
+        if mp:
+            works_by_mp.setdefault(mp, []).append(w)
+            
+    mp_list = []
+    mp_map = {}
+    
+    for _, row in mps_df.iterrows():
+        mp_name = str(row.get("mp_name", "")).strip()
+        state = str(row.get("state", "")).strip()
+        constituency = str(row.get("constituency", "")).strip()
+        raw_allocated = row.get("allocated_amount", 147000000.0)
+        try:
+            allocated = float(raw_allocated)
+        except (ValueError, TypeError):
+            allocated = 147000000.0
+            
+        mp_works = works_by_mp.get(mp_name.lower(), [])
+        total_sanctioned = sum(float(w.get("sanctioned_amount", 0.0)) for w in mp_works)
+        total_spent = sum(float(w.get("actual_expenditure", 0.0)) for w in mp_works)
+        high_risk_count = sum(1 for w in mp_works if w.get("risk_level") in ["CRITICAL", "HIGH"])
+        avg_risk = round(sum(float(w.get("overall_risk_score", 0.0)) for w in mp_works) / len(mp_works), 1) if mp_works else 0.0
+        util_rate = round((total_sanctioned / allocated * 100), 2) if allocated > 0 else 0.0
+        rem_balance = round(max(0.0, allocated - total_sanctioned), 2)
+        
+        entry = {
+            "sr_no": int(row.get("sr_no", 0)),
+            "state": state,
+            "mp_name": mp_name,
+            "constituency": constituency,
+            "allocated_amount": allocated,
+            "total_works": len(mp_works),
+            "total_sanctioned_amount": round(total_sanctioned, 2),
+            "total_expenditure": round(total_spent, 2),
+            "remaining_balance": rem_balance,
+            "utilization_percentage": util_rate,
+            "high_risk_works_count": high_risk_count,
+            "average_risk_score": avg_risk
+        }
+        mp_list.append(entry)
+        mp_map[mp_name.lower()] = entry
+        
+    return mp_list, mp_map
 
 def load_and_run_pipeline():
     try:
         df = pd.read_csv(settings.DATA_PATH)
     except Exception as e:
-        # Fallback to relative path if run from different cwd
         df = pd.read_csv("../data/synthetic_mplads_works.csv")
         
-    # Replace NaN values with empty string or sensible defaults for clean JSON serialization
     df = df.fillna("")
     _DATA_CACHE["df"] = df
     works, summary, dup_pairs, cohort_stats = run_full_risk_pipeline(df)
@@ -33,7 +81,24 @@ def load_and_run_pipeline():
     _DATA_CACHE["summary"] = summary
     _DATA_CACHE["dup_pairs"] = dup_pairs
     _DATA_CACHE["cohort_stats"] = cohort_stats
-    print(f"[PIPELINE INITIALIZED] Loaded {len(works)} evaluated records.")
+    
+    # Load MP Allocations Master Dataset
+    try:
+        mps_df = pd.read_csv(settings.MP_DATA_PATH)
+    except Exception as e:
+        try:
+            mps_df = pd.read_csv("../data/mp_allocations.csv")
+        except Exception:
+            mps_df = pd.DataFrame()
+            
+    _DATA_CACHE["mps_df"] = mps_df
+    if not mps_df.empty:
+        mps_list, mps_map = compute_mp_metrics(mps_df, works)
+        _DATA_CACHE["mps_list"] = mps_list
+        _DATA_CACHE["mps_map"] = mps_map
+        print(f"[PIPELINE INITIALIZED] Loaded {len(works)} evaluated records & {len(mps_list)} MP allocations.")
+    else:
+        print(f"[PIPELINE INITIALIZED] Loaded {len(works)} evaluated records.")
 
 class RecalculateRequest(BaseModel):
     weight_financial: float = 30.0
@@ -83,12 +148,14 @@ def get_summary(district: Optional[str] = None, state: Optional[str] = None):
 def get_works(
     state: Optional[str] = None,
     district: Optional[str] = None,
+    constituency: Optional[str] = None,
+    mp_name: Optional[str] = None,
     category: Optional[str] = None,
     risk_level: Optional[str] = None,
-    min_score: Optional[int] = Query(None, ge=0, le=100),
+    min_score: Optional[int] = None,
     search: Optional[str] = None,
-    limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0)
+    limit: int = 50,
+    offset: int = 0
 ):
     """Returns filtered and paginated list of works ordered by risk priority."""
     items = _DATA_CACHE["works"]
@@ -97,6 +164,10 @@ def get_works(
         items = [w for w in items if w["state"].lower() == state.lower()]
     if district:
         items = [w for w in items if w["district"].lower() == district.lower()]
+    if constituency:
+        items = [w for w in items if w.get("constituency", "").lower() == constituency.lower()]
+    if mp_name:
+        items = [w for w in items if mp_name.lower() in w.get("mp_name", "").lower()]
     if category:
         items = [w for w in items if w["work_category"].lower() == category.lower()]
     if risk_level:
@@ -110,7 +181,10 @@ def get_works(
             if s_lower in w["work_title"].lower() 
             or s_lower in w["work_id"].lower() 
             or s_lower in w["district"].lower()
+            or s_lower in w.get("constituency", "").lower()
+            or s_lower in w.get("mp_name", "").lower()
             or s_lower in w.get("implementing_agency", "").lower()
+            or s_lower in w.get("vendor", "").lower()
         ]
         
     total = len(items)
@@ -245,7 +319,128 @@ def recalculate_risk_scores(req: RecalculateRequest):
     _DATA_CACHE["dup_pairs"] = dup_pairs
     _DATA_CACHE["cohort_stats"] = cohort_stats
     
+    # Recompute MP metrics
+    mps_df = _DATA_CACHE.get("mps_df")
+    if mps_df is not None and not mps_df.empty:
+        mps_list, mps_map = compute_mp_metrics(mps_df, works)
+        _DATA_CACHE["mps_list"] = mps_list
+        _DATA_CACHE["mps_map"] = mps_map
+        
     return {
         "message": "Risk scores successfully recalculated",
         "new_summary": summary
+    }
+
+@router.get("/mps")
+def get_mps(
+    state: Optional[str] = None,
+    search: Optional[str] = None,
+    has_works: Optional[bool] = None,
+    limit: int = 100,
+    offset: int = 0
+):
+    """Returns directory of MPs with total allocations, sanctioned funds, expenditure, and risk profile."""
+    items = _DATA_CACHE.get("mps_list", [])
+    
+    if state:
+        items = [m for m in items if m["state"].lower() == state.lower()]
+    if has_works is True:
+        items = [m for m in items if m["total_works"] > 0]
+    elif has_works is False:
+        items = [m for m in items if m["total_works"] == 0]
+    if search:
+        s_lower = search.lower()
+        items = [
+            m for m in items 
+            if s_lower in m["mp_name"].lower() 
+            or s_lower in m["constituency"].lower()
+            or s_lower in m["state"].lower()
+        ]
+        
+    total = len(items)
+    paginated = items[offset : offset + limit]
+    
+    # Executive overview across filtered or total set
+    total_alloc = sum(m["allocated_amount"] for m in items)
+    total_sanct = sum(m["total_sanctioned_amount"] for m in items)
+    total_exp = sum(m["total_expenditure"] for m in items)
+    
+    return {
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "overview": {
+            "total_mps": total,
+            "total_allocated_amount": round(total_alloc, 2),
+            "total_sanctioned_amount": round(total_sanct, 2),
+            "total_expenditure": round(total_exp, 2),
+            "overall_utilization_rate": round((total_sanct / total_alloc * 100), 2) if total_alloc > 0 else 0.0
+        },
+        "items": paginated
+    }
+
+@router.get("/mps/{mp_name}")
+def get_mp_details(mp_name: str):
+    """Returns full portfolio and risk dossiers of projects under a specific MP."""
+    mp_key = mp_name.strip().lower()
+    mp_meta = _DATA_CACHE.get("mps_map", {}).get(mp_key)
+    
+    # Fuzzy/partial match if exact match not found
+    if not mp_meta:
+        for k, v in _DATA_CACHE.get("mps_map", {}).items():
+            if mp_key in k or k in mp_key:
+                mp_meta = v
+                break
+                
+    if not mp_meta:
+        raise HTTPException(status_code=404, detail=f"MP '{mp_name}' not found.")
+        
+    # Get all works for this MP
+    works = [w for w in _DATA_CACHE["works"] if mp_meta["mp_name"].lower() in str(w.get("mp_name", "")).lower()]
+    
+    return {
+        "mp_profile": mp_meta,
+        "total_works": len(works),
+        "works": works
+    }
+
+@router.get("/states")
+def get_state_summaries():
+    """Returns state-wise summary of MP allocations, sanctioned projects, and risk metrics."""
+    mps = _DATA_CACHE.get("mps_list", [])
+    works = _DATA_CACHE["works"]
+    
+    state_map = {}
+    for m in mps:
+        st = m["state"]
+        if st not in state_map:
+            state_map[st] = {
+                "state": st,
+                "total_mps": 0,
+                "total_allocated_amount": 0.0,
+                "total_sanctioned_amount": 0.0,
+                "total_expenditure": 0.0,
+                "total_works": 0,
+                "high_risk_works": 0
+            }
+        state_map[st]["total_mps"] += 1
+        state_map[st]["total_allocated_amount"] += m["allocated_amount"]
+        state_map[st]["total_sanctioned_amount"] += m["total_sanctioned_amount"]
+        state_map[st]["total_expenditure"] += m["total_expenditure"]
+        state_map[st]["total_works"] += m["total_works"]
+        state_map[st]["high_risk_works"] += m["high_risk_works_count"]
+        
+    result = []
+    for st, v in sorted(state_map.items()):
+        alloc = v["total_allocated_amount"]
+        sanct = v["total_sanctioned_amount"]
+        v["utilization_percentage"] = round((sanct / alloc * 100), 2) if alloc > 0 else 0.0
+        v["total_allocated_amount"] = round(alloc, 2)
+        v["total_sanctioned_amount"] = round(sanct, 2)
+        v["total_expenditure"] = round(v["total_expenditure"], 2)
+        result.append(v)
+        
+    return {
+        "total_states": len(result),
+        "states": result
     }

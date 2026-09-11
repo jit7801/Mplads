@@ -26,20 +26,20 @@ AGENCIES = [
 
 DISTRICTS_BY_STATE = {
     "Rajasthan": [
-        {"name": "Jaipur", "lat": 26.9124, "lon": 75.7873, "constituency": "Jaipur Parliamentary"},
-        {"name": "Jodhpur", "lat": 26.2389, "lon": 73.0243, "constituency": "Jodhpur Parliamentary"}
+        {"name": "Jaipur", "lat": 26.9124, "lon": 75.7873, "constituency": "JAIPUR", "mp_name": "MANJU SHARMA"},
+        {"name": "Jodhpur", "lat": 26.2389, "lon": 73.0243, "constituency": "JODHPUR", "mp_name": "Gajendra Singh Shekhawat"}
     ],
     "Maharashtra": [
-        {"name": "Pune", "lat": 18.5204, "lon": 73.8567, "constituency": "Pune Parliamentary"},
-        {"name": "Nagpur", "lat": 21.1458, "lon": 79.0882, "constituency": "Nagpur Parliamentary"}
+        {"name": "Pune", "lat": 18.5204, "lon": 73.8567, "constituency": "PUNE", "mp_name": "MURLIDHAR MOHOL"},
+        {"name": "Nagpur", "lat": 21.1458, "lon": 79.0882, "constituency": "NAGPUR", "mp_name": "Nitin Jairam Gadkari"}
     ],
     "Karnataka": [
-        {"name": "Bengaluru Rural", "lat": 13.2240, "lon": 77.5750, "constituency": "Bengaluru Rural Parliamentary"},
-        {"name": "Mysuru", "lat": 12.2958, "lon": 76.6394, "constituency": "Mysuru-Kodagu Parliamentary"}
+        {"name": "Bengaluru Rural", "lat": 13.2240, "lon": 77.5750, "constituency": "BANGALORE RURAL", "mp_name": "DR C N MANJUNATH"},
+        {"name": "Mysuru", "lat": 12.2958, "lon": 76.6394, "constituency": "MYSORE", "mp_name": "YADUVEER KRISHNADATTA CHAMARAJA WADIYAR"}
     ],
     "Uttar Pradesh": [
-        {"name": "Varanasi", "lat": 25.3176, "lon": 82.9739, "constituency": "Varanasi Parliamentary"},
-        {"name": "Lucknow", "lat": 26.8467, "lon": 80.9462, "constituency": "Lucknow Parliamentary"}
+        {"name": "Varanasi", "lat": 25.3176, "lon": 82.9739, "constituency": "VARANASI", "mp_name": "Shri Narendra Modi"},
+        {"name": "Lucknow", "lat": 26.8467, "lon": 80.9462, "constituency": "LUCKNOW", "mp_name": "Rajnath Singh"}
     ]
 }
 
@@ -119,7 +119,7 @@ def build_dataset(total_count=520):
         dist_meta = random.choice(DISTRICTS_BY_STATE[state])
         district = dist_meta["name"]
         constituency = dist_meta["constituency"]
-        mp_name = f"Hon. Member of Parliament ({constituency})"
+        mp_name = dist_meta.get("mp_name", f"Hon. MP ({constituency})")
         cat = random.choice(CATEGORIES)
         agency = random.choice(AGENCIES)
         vendor = f"Registered Contractor V-{random.randint(101, 180)} Pvt Ltd"
@@ -229,10 +229,10 @@ def build_dataset(total_count=520):
     records[41] = {
         **records[41],
         "work_id": "MPLAD-RJ-2024-0042",
-        "mp_name": "Hon. Member of Parliament (Jaipur Parliamentary)",
+        "mp_name": "MANJU SHARMA",
         "state": "Rajasthan",
         "district": "Jaipur",
-        "constituency": "Jaipur Parliamentary",
+        "constituency": "JAIPUR",
         "work_title": "Construction of CC Road from Main Temple to Bus Stand, Ward 4",
         "work_category": "Road Works",
         "work_description": "Construction of 600m concrete cement carriageway connecting main road to bus stand.",
@@ -268,10 +268,10 @@ def build_dataset(total_count=520):
     records[88] = {
         **records[88],
         "work_id": "MPLAD-RJ-2024-0089",
-        "mp_name": "Hon. Member of Parliament (Jaipur Parliamentary)",
+        "mp_name": "MANJU SHARMA",
         "state": "Rajasthan",
         "district": "Jaipur",
-        "constituency": "Jaipur Parliamentary",
+        "constituency": "JAIPUR",
         "work_title": "Construction of Cement Concrete Lane in Ward No. 4",
         "work_category": "Road Works",
         "work_description": "Laying of CC road pavement in residential section of Ward 4.",
@@ -305,9 +305,10 @@ def build_dataset(total_count=520):
     records[120] = {
         **records[120],
         "work_id": "MPLAD-MH-2024-0121",
+        "mp_name": "MURLIDHAR MOHOL",
         "state": "Maharashtra",
         "district": "Pune",
-        "constituency": "Pune Parliamentary",
+        "constituency": "PUNE",
         "work_title": "Construction of 2 Additional Classrooms in Govt High School, Kothrud",
         "work_category": "School Infrastructure & Classrooms",
         "sanctioned_amount": 4200000.00, # 2.3x peer median of ~18.5L!
@@ -324,9 +325,10 @@ def build_dataset(total_count=520):
     records[215] = {
         **records[215],
         "work_id": "MPLAD-UP-2024-0216",
+        "mp_name": "Shri Narendra Modi",
         "state": "Uttar Pradesh",
         "district": "Varanasi",
-        "constituency": "Varanasi Parliamentary",
+        "constituency": "VARANASI",
         "work_title": "Installation of Solar Dual Pump Tube Well at Chitaipur Chowk",
         "work_category": "Drinking Water & Tube Wells",
         "sanctioned_amount": 950000.00,
@@ -344,9 +346,10 @@ def build_dataset(total_count=520):
     records[340] = {
         **records[340],
         "work_id": "MPLAD-KA-2024-0341",
+        "mp_name": "DR C N MANJUNATH",
         "state": "Karnataka",
         "district": "Bengaluru Rural",
-        "constituency": "Bengaluru Rural Parliamentary",
+        "constituency": "BANGALORE RURAL",
         "work_title": "Construction of Community Welfare Center at Devanahalli",
         "work_category": "Community Hall & Cultural Centers",
         "sanctioned_amount": 2800000.00,
@@ -365,11 +368,14 @@ def build_dataset(total_count=520):
     return pd.DataFrame(records)
 
 if __name__ == "__main__":
-    os.makedirs("data", exist_ok=True)
     df = build_dataset(520)
-    output_path = "data/synthetic_mplads_works.csv"
-    df.to_csv(output_path, index=False)
-    print(f"[SUCCESS] Generated {len(df)} records in {output_path}")
+    for out_dir in ["backend/data", "data"]:
+        if os.path.exists(out_dir) or out_dir == "backend/data":
+            os.makedirs(out_dir, exist_ok=True)
+            output_path = os.path.join(out_dir, "synthetic_mplads_works.csv")
+            df.to_csv(output_path, index=False)
+            print(f"[SUCCESS] Generated {len(df)} records in {output_path}")
+            
     print(f"Planted flagship demo cases:")
     print(f"  - MPLAD-RJ-2024-0042 (Triple threat: Cost 1.9x, 38% progress gap, 102d inactive, duplicate candidate)")
     print(f"  - MPLAD-RJ-2024-0089 (Duplicate match ~35m away, 88% title match)")

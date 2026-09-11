@@ -49,3 +49,19 @@ def test_unified_risk_score_flagship(sample_df):
     assert w42["overall_risk_score"] >= 80
     assert w42["risk_level"] == "CRITICAL"
     assert len(w42["evidence_summary"]) >= 4
+
+def test_mp_allocations_and_metrics(sample_df):
+    from app.api.v1.router import compute_mp_metrics
+    from app.core.config import settings
+    works, _, _, _ = run_full_risk_pipeline(sample_df)
+    mps_path = settings.MP_DATA_PATH
+    if os.path.exists(mps_path):
+        mps_df = pd.read_csv(mps_path)
+        mp_list, mp_map = compute_mp_metrics(mps_df, works)
+        assert len(mp_list) > 500
+        # Check that Manju Sharma (Jaipur MP) has works tracked
+        jaipur_mp = mp_map.get("manju sharma")
+        assert jaipur_mp is not None
+        assert jaipur_mp["total_works"] > 0
+        assert jaipur_mp["allocated_amount"] > 0
+
