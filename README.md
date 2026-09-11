@@ -84,7 +84,7 @@ cd backend
 # Install dependencies
 pip install -r requirements.txt
 
-# Run full automated test suite (21 tests)
+# Run full automated test suite (24 tests)
 python3 -m pytest tests -v
 
 # Start FastAPI server (runs on http://localhost:8001)
@@ -113,9 +113,9 @@ Run the full automated test suite covering all modules:
 python3 -m pytest backend/tests -v
 ```
 
-### Coverage Summary (21 / 21 Passed):
+### Coverage Summary (24 / 24 Passed):
 - `test_validation.py`: Negative amounts detection, India coordinate bounding checks, temporal chronology consistency, clean record pass-through.
-- `test_engines.py`: Haversine distance, multi-tier cohort fallback, zero-MAD safe handling, unit cost extraction, delay stagnation, centralized evaluation date configuration, BallTree duplicate indexing, compliance signal disaggregation, unified risk scoring, and 543 MP allocation calculations.
+- `test_engines.py`: Haversine distance, leave-one-out multi-tier cohort statistics, zero-MAD safe relative deviation fallback, zero peer median handling, unit cost extraction, delay stagnation, centralized deterministic evaluation date configuration, BallTree duplicate indexing with candidate signal strengths, stage-aware compliance signal disaggregation, unified risk scoring, and 543 MP allocation calculations.
 - `test_api.py`: REST endpoint contracts (`/health`, `/summary`, `/works`, `/explanation`, `/map/layers`, `/mps`, `/states`), coordinate bounds in GeoJSON, and strict Pydantic model weight validation ($\sum = 100$).
 
 ---

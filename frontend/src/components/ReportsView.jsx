@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import RiskBadge from './RiskBadge';
-import { FileText, Printer, Download, CheckCircle, Clock, Search, FilterX, Eye, AlertCircle } from 'lucide-react';
+import { Printer, Download, Search, FilterX, Eye, AlertCircle } from 'lucide-react';
 import { useToast } from './Toast';
 
 export default function ReportsView({ works = [], onSelectWork }) {

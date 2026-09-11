@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, AlertOctagon, TrendingUp, Clock, Copy, FileCheck, MapPin, Printer, ShieldAlert, CheckCircle2, ChevronRight } from 'lucide-react';
+import { X, AlertOctagon, TrendingUp, Clock, Copy, FileCheck, Printer, ShieldAlert, ChevronRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { fetchWorkExplanation } from '../api/client';
 

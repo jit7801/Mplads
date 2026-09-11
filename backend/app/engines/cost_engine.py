@@ -129,84 +129,109 @@ def compute_cost_anomalies(df: pd.DataFrame) -> Tuple[Dict[str, Dict[str, Any]],
         else:
             norm_method = "TOTAL_COST_BASELINE"
             
-        # 1. Multi-tier Cohort Selection
-        cohort_tier = "DISTRICT"
-        cohort_key = (cat, dist)
-        cohort_df = t1_groups.get(cohort_key)
-        cohort_name = f"{cat} — {dist}"
+        # 1. Leave-One-Out Multi-tier Cohort Selection
+        # Excludes current work so it does not influence its own peer statistics
+        t1_df = t1_groups.get((cat, dist))
+        t1_others = t1_df[t1_df["work_id"] != w_id]["sanctioned_amount"].dropna().values if t1_df is not None else np.array([])
         
-        if cohort_df is None or len(cohort_df) < min_peer_size:
+        t2_df = t2_groups.get((cat, state))
+        t2_others = t2_df[t2_df["work_id"] != w_id]["sanctioned_amount"].dropna().values if t2_df is not None else np.array([])
+        
+        t3_df = t3_groups.get(cat)
+        t3_others = t3_df[t3_df["work_id"] != w_id]["sanctioned_amount"].dropna().values if t3_df is not None else np.array([])
+        
+        if len(t1_others) >= min_peer_size:
+            cohort_tier = "DISTRICT"
+            cohort_name = f"{cat} — {dist}"
+            peer_costs = t1_others
+        elif len(t2_others) >= min_peer_size:
             cohort_tier = "STATE_FALLBACK"
-            cohort_key = (cat, state)
-            cohort_df = t2_groups.get(cohort_key)
             cohort_name = f"{cat} — {state} (State Peer Cohort)"
-            
-        if cohort_df is None or len(cohort_df) < min_peer_size:
+            peer_costs = t2_others
+        elif len(t3_others) >= min_peer_size:
             cohort_tier = "NATIONAL_FALLBACK"
-            cohort_df = t3_groups.get(cat)
             cohort_name = f"{cat} (National Baseline)"
-            
-        if cohort_df is None or len(cohort_df) < min_peer_size:
+            peer_costs = t3_others
+        else:
             cohort_tier = "INSUFFICIENT_PEER_DATA"
-            cohort_name = f"{cat} (Insufficient Cohort Samples < {min_peer_size})"
+            cohort_name = f"{cat} (Insufficient Peer Samples < {min_peer_size})"
+            peer_costs = t3_others
             
         if cohort_name not in cohort_summaries and cohort_tier != "INSUFFICIENT_PEER_DATA":
-            cohort_summaries[cohort_name] = summarize_series(cohort_df["sanctioned_amount"].values, cohort_name, cat, dist if cohort_tier == "DISTRICT" else state)
+            cohort_summaries[cohort_name] = summarize_series(peer_costs, cohort_name, cat, dist if cohort_tier == "DISTRICT" else state)
             
-        # 2. Compute Robust Statistical Metrics
+        # 2. Compute Robust Statistical Metrics (Leave-One-Out)
+        cost_metric_used = "SANCTIONED_AMOUNT"
         if cohort_tier == "INSUFFICIENT_PEER_DATA":
-            peer_count = len(cohort_df) if cohort_df is not None else 0
+            peer_count = len(peer_costs)
             peer_median = sanct_cost
             mad = 0.0
             ratio = 1.0
             mod_z = 0.0
             score = 4
-            explanation = f"Insufficient comparable peer projects in '{cat}' to establish an empirical benchmark (N={peer_count}). Total estimate evaluated at standard baseline."
+            anomaly_reason = "STANDARD_BASELINE_INSUFFICIENT_PEERS"
+            explanation = (
+                f"Compared sanctioned cost ₹{sanct_cost/100000:.2f}L against baseline. "
+                f"Insufficient other comparable peer projects in '{cat}' (other peers N={peer_count} < {min_peer_size}) "
+                f"to establish an empirical distribution."
+            )
         else:
-            peer_costs = cohort_df["sanctioned_amount"].values
             peer_count = len(peer_costs)
             peer_median = float(np.median(peer_costs))
             mad = float(np.median(np.abs(peer_costs - peer_median)))
             
-            # Safe zero-MAD handling
-            if mad == 0.0:
-                mad = peer_median * 0.10 if peer_median > 0 else 1.0
+            # Safe zero-MAD handling via documented relative deviation
+            if mad > 0.0:
+                mod_z = 0.6745 * (sanct_cost - peer_median) / mad
+            else:
+                mod_z = 0.0
                 
-            ratio = sanct_cost / peer_median if peer_median > 0 else 1.0
-            mod_z = 0.6745 * (sanct_cost - peer_median) / (mad + 1e-6)
+            ratio = (sanct_cost / peer_median) if peer_median > 0.0 else (1.0 if sanct_cost == 0.0 else 2.0)
             
             # 3. Transparent Scoring
             score = 0
             reasons = []
+            anomaly_reason = "NORMAL_COHORT_RANGE"
             
-            if ratio >= settings.COST_EXTREME_RATIO or mod_z >= 2.5:
+            unit_desc = f" ({unit_cost:,.2f}/{unit[:-1] if unit and unit.endswith('s') else unit})" if unit_cost else ""
+            
+            if ratio >= settings.COST_EXTREME_RATIO or (mad > 0 and mod_z >= 2.5):
                 score = 26
-                unit_desc = f" ({unit_cost:,.2f}/{unit[:-1] if unit and unit.endswith('s') else unit})" if unit_cost else ""
+                anomaly_reason = "EXTREME_COST_OUTLIER"
                 reasons.append(
-                    f"Sanctioned cost of ₹{sanct_cost/100000:.2f}L{unit_desc} is {ratio:.2f}× the peer median (₹{peer_median/100000:.2f}L) across {peer_count} projects in {cohort_name}. Modified Z-score is {mod_z:.2f}."
+                    f"Compared sanctioned cost ₹{sanct_cost/100000:.2f}L{unit_desc} against a peer median of ₹{peer_median/100000:.2f}L "
+                    f"({ratio:.2f}×) across {peer_count} other comparable projects in {cohort_name}. Modified Z-score is {mod_z:.2f}."
                 )
-            elif ratio >= settings.COST_HIGH_RATIO or mod_z >= 1.8:
+            elif ratio >= settings.COST_HIGH_RATIO or (mad > 0 and mod_z >= 1.8):
                 score = 18
+                anomaly_reason = "HIGH_COST_OUTLIER"
                 reasons.append(
-                    f"Sanctioned cost of ₹{sanct_cost/100000:.2f}L is {ratio:.2f}× peer median (₹{peer_median/100000:.2f}L) in {cohort_name}."
+                    f"Compared sanctioned cost ₹{sanct_cost/100000:.2f}L against a peer median of ₹{peer_median/100000:.2f}L "
+                    f"({ratio:.2f}×) across {peer_count} other comparable projects in {cohort_name}."
                 )
-            elif ratio >= settings.COST_ELEVATED_RATIO or mod_z >= 1.2:
+            elif ratio >= settings.COST_ELEVATED_RATIO or (mad > 0 and mod_z >= 1.2):
                 score = 11
+                anomaly_reason = "ELEVATED_COST"
                 reasons.append(
-                    f"Cost is moderately above peer median ({ratio:.2f}× in {cohort_name})."
+                    f"Cost is moderately above peer median ({ratio:.2f}× against ₹{peer_median/100000:.2f}L in {cohort_name})."
                 )
             else:
                 score = 4
+                anomaly_reason = "WITHIN_EXPECTED_PEER_RANGE"
                 reasons.append(
-                    f"Project cost of ₹{sanct_cost/100000:.2f}L aligns with peer median (₹{peer_median/100000:.2f}L) in {cohort_name}."
+                    f"Compared sanctioned cost ₹{sanct_cost/100000:.2f}L against a peer median of ₹{peer_median/100000:.2f}L "
+                    f"({ratio:.2f}×) across {peer_count} other projects in {cohort_name}."
                 )
+                
+            if mad == 0.0:
+                reasons.append("Low intra-cohort variance detected (MAD = 0); evaluated via relative percentage deviation.")
                 
             # Budget overshoot check
             actual_exp = float(row.get("actual_expenditure", 0.0))
             if sanct_cost > 0 and actual_exp > 1.15 * sanct_cost:
                 overshoot_pct = ((actual_exp / sanct_cost) - 1.0) * 100.0
                 score = min(30, score + 4)
-                reasons.append(f"Recorded expenditure exceeds sanctioned budget allocation by {overshoot_pct:.1f}%.")
+                reasons.append(f"Recorded actual expenditure (₹{actual_exp/100000:.2f}L) exceeds sanctioned budget by {overshoot_pct:.1f}%.")
                 
             if is_iso_anomaly:
                 reasons.append("Flagged by secondary multivariate Isolation Forest model as an expenditure distribution outlier.")
@@ -216,14 +241,18 @@ def compute_cost_anomalies(df: pd.DataFrame) -> Tuple[Dict[str, Dict[str, Any]],
         results[w_id] = {
             "financial_risk_score": min(score, 30),
             "max_score": 30,
-            "cohort_name": cohort_name,
-            "cohort_tier": cohort_tier,
+            "cost_metric_used": cost_metric_used,
+            "current_value": round(sanct_cost, 2),
+            "work_cost": round(sanct_cost, 2),
             "peer_count": peer_count,
             "peer_median": round(peer_median, 2),
             "mad": round(mad, 2),
-            "work_cost": round(sanct_cost, 2),
             "cost_ratio": round(ratio, 2),
             "modified_z_score": round(mod_z, 2),
+            "modified_z": round(mod_z, 2),
+            "anomaly_reason": anomaly_reason,
+            "cohort_name": cohort_name,
+            "cohort_tier": cohort_tier,
             "unit_quantity": qty,
             "unit_type": unit,
             "unit_cost": unit_cost,

@@ -1,12 +1,15 @@
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, List
 import pandas as pd
+from app.core.config import settings
 
 def evaluate_work_compliance(row: pd.Series | dict) -> Dict[str, Any]:
     """
     Evaluates documentation completeness and statutory compliance per project.
-    Returns disaggregated boolean signals, score (max 15), and explicit statutory reasons.
+    Distinguishes ONGOING vs COMPLETED stages with configurable policy rules.
+    Returns disaggregated boolean signals, score (max 15), and transparent policy explanations.
     """
     status = str(row.get("status", "")).strip().upper()
+    is_completed = (status == "COMPLETED")
     
     try:
         fin_prog = float(row.get("financial_progress", 0.0))
@@ -24,46 +27,56 @@ def evaluate_work_compliance(row: pd.Series | dict) -> Dict[str, Any]:
     photo = bool(row.get("photo_available", False))
     asset_reg = bool(row.get("asset_register_entry", False))
     
-    # 1. Disaggregated statutory signals
-    missing_completion_cert = (status == "COMPLETED" and not comp_cert)
-    missing_utilization_cert = (fin_prog >= 75.0 and not util_cert)
-    missing_audit_cert = (status == "COMPLETED" and not audit_cert)
+    uc_threshold = settings.UC_REVIEW_FINANCIAL_PROGRESS_THRESHOLD
+    asset_threshold = settings.ASSET_REGISTER_REVIEW_PHYSICAL_PROGRESS_THRESHOLD
+    
+    # 1. Stage-aware Disaggregated signals
+    missing_completion_cert = (is_completed and not comp_cert)
+    missing_utilization_cert = (fin_prog >= uc_threshold and not util_cert)
+    missing_audit_cert = (is_completed and not audit_cert)
     missing_photo_evidence = not photo
-    missing_asset_register = not asset_reg
-    inconsistent_completion = (status == "COMPLETED" and phys_prog < 95.0)
+    # Asset register only required for completed works or advanced ongoing works
+    missing_asset_register = (not asset_reg) if is_completed else (not asset_reg and phys_prog >= asset_threshold)
+    inconsistent_completion = (is_completed and phys_prog < 95.0)
     
     score = 0
     reasons: List[str] = []
     
     if missing_completion_cert:
         score += 5
-        reasons.append("Project marked complete but statutory Completion Certificate is missing from records.")
+        reasons.append("Configured compliance rule: project marked complete but Completion Certificate is missing from records.")
         
     if missing_utilization_cert:
         score += 5
-        reasons.append(f"Financial disbursement reached {fin_prog:.1f}% without submitted Utilization Certificate (UC).")
+        reasons.append(
+            f"Configured policy rule triggered: financial disbursement ({fin_prog:.1f}%) exceeds configured review threshold ({uc_threshold:.0f}%) without submitted Utilization Certificate (UC)."
+        )
         
     if missing_photo_evidence:
         score += 3
-        reasons.append("No geo-tagged physical progress photograph uploaded to official portal.")
+        reasons.append("Configured policy rule: no geo-tagged physical progress photograph uploaded to portal.")
         
     if missing_asset_register:
         score += 2
-        reasons.append("Work asset not yet formally registered in District Asset Register.")
+        if is_completed:
+            reasons.append("Configured compliance rule: completed work asset not yet formally registered in District Asset Register.")
+        else:
+            reasons.append(f"Configured policy rule: advanced ongoing work ({phys_prog:.1f}%) not yet entered in provisional Asset Register.")
         
     if missing_audit_cert:
         score += 2
-        reasons.append("Statutory third-party social audit certificate not recorded for completed work.")
+        reasons.append("Configured compliance rule: social audit certificate not recorded for completed work.")
         
     if inconsistent_completion:
         score += 3
-        reasons.append(f"Work status recorded as COMPLETED while physical progress is only {phys_prog:.1f}%.")
+        reasons.append(f"Configured compliance rule: work recorded as COMPLETED while physical progress is only {phys_prog:.1f}%.")
         
     final_score = min(score, 15)
     
     return {
         "compliance_risk_score": final_score,
         "max_score": 15,
+        "project_stage": "COMPLETED" if is_completed else "ONGOING",
         "signals": {
             "missing_completion_certificate": missing_completion_cert,
             "missing_utilization_certificate": missing_utilization_cert,

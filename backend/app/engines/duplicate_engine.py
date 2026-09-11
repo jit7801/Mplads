@@ -195,6 +195,14 @@ def compute_duplicates_and_overlaps(
         wdi = (w_text * s_text) + (w_geo * s_geo) + (w_cat * s_cat) + (w_agency * s_agency) + (w_cost * s_cost)
         pair_score = min(25, round(wdi * 25.0))
         
+        # Signal strength classification (Governance compliant)
+        if wdi >= 0.80 or pair_score >= 20:
+            signal_strength = "STRONG CANDIDATE"
+        elif wdi >= 0.60 or pair_score >= 15:
+            signal_strength = "MODERATE CANDIDATE"
+        else:
+            signal_strength = "WEAK CANDIDATE"
+        
         pair_record = {
             "pair_id": f"{id_a}__{id_b}",
             "work_a": r_a,
@@ -202,13 +210,15 @@ def compute_duplicates_and_overlaps(
             "distance_meters": round(dist_m, 1),
             "text_similarity": round(s_text * 100.0, 1),
             "combined_score": round(wdi * 100.0, 1),
+            "weighted_duplicate_index": round(wdi, 3),
             "duplicate_risk_score": pair_score,
+            "signal_strength": signal_strength,
             "same_category": bool(s_cat == 1.0),
             "same_agency": bool(s_agency == 1.0),
             "cost_similarity": round(s_cost, 2),
             "verification_status": "POSSIBLE DUPLICATE / OVERLAP — VERIFY",
             "explanation": (
-                f"Candidate overlap co-located {dist_m:.1f}m away (threshold: {radius_m:.0f}m). "
+                f"Candidate overlap co-located {dist_m:.1f}m away (threshold: {radius_m:.0f}m) [{signal_strength}]. "
                 f"Text scope similarity is {s_text * 100.0:.1f}%. "
                 f"{'Identical implementing agency.' if s_agency else 'Assigned to different agencies.'}"
             )
@@ -227,10 +237,12 @@ def compute_duplicates_and_overlaps(
                     "distance_meters": round(dist_m, 1),
                     "text_similarity": round(s_text * 100.0, 1),
                     "combined_score": round(wdi * 100.0, 1),
+                    "weighted_duplicate_index": round(wdi, 3),
+                    "signal_strength": signal_strength,
                     "verification_status": "POSSIBLE DUPLICATE / OVERLAP — VERIFY",
                     "explanation": (
                         f"Potential co-located asset {dist_m:.1f}m from {other_id} ('{other_r.get('work_title')}') "
-                        f"with {s_text * 100.0:.1f}% scope similarity. Subject to physical site verification."
+                        f"with {s_text * 100.0:.1f}% scope similarity [{signal_strength}]. Subject to physical site verification."
                     )
                 }
                 

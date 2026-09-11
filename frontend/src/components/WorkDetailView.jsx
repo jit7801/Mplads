@@ -17,8 +17,7 @@ import {
   Send,
   Check,
   X,
-  Map,
-  FileText
+  Map
 } from 'lucide-react';
 import { fetchWorkExplanation } from '../api/client';
 import { useToast } from './Toast';
@@ -160,6 +159,17 @@ export default function WorkDetailView({
               <Printer className="w-3.5 h-3.5 text-[#667085]" />
               <span>Print Notice</span>
             </button>
+
+            {onViewOnMap && (
+              <button
+                onClick={() => onViewOnMap(dossier.work_id)}
+                className="btn-secondary flex items-center gap-1.5 py-1.5 text-xs font-medium"
+                title="View on Risk Map"
+              >
+                <Map className="w-3.5 h-3.5 text-[#667085]" />
+                <span>Map</span>
+              </button>
+            )}
 
             <button
               onClick={() => setIsActionModalOpen(true)}

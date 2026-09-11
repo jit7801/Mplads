@@ -67,7 +67,7 @@ This document tracks all foundational, architectural, algorithmic, operational, 
   - Load and run the analytical pipeline once during application startup in FastAPI's `lifespan` handler.
   - Store results in an in-memory dictionary cache (`_DATA_CACHE`) for $O(1)$ query retrieval.
   - Isolate data access logic from business logic to support a seamless drop-in transition to PostgreSQL / PostGIS in production.
-* **Consequence**: API response latency drops from ~1200ms to <15ms for all standard GET queries.
+* **Consequence**: Pre-computing analytical pipelines into memory eliminates redundant runtime recalculations for all standard queries during high-concurrency demonstrations.
 
 ---
 

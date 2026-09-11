@@ -8,13 +8,11 @@ import {
   ChevronRight,
   ArrowUpDown,
   FilterX,
-  SlidersHorizontal,
   LayoutGrid,
   List,
   Eye,
   MapPin,
   Building2,
-  Calendar,
   AlertCircle
 } from 'lucide-react';
 import { useToast } from './Toast';
@@ -25,12 +23,13 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
   const [selectedState, setSelectedState] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedRisk, setSelectedRisk] = useState(initialRiskFilter || '');
+  const [selectedRisk, setSelectedRisk] = useState(initialRiskFilter);
   const [selectedStatus, setSelectedStatus] = useState('');
-  const [sortBy, setSortBy] = useState('overall_risk_score');
-  const [sortOrder, setSortOrder] = useState('desc');
-  const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
+
+  const [sortBy, setSortBy] = useState('overall_risk_score');
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
   const pageSize = 12;
 
   useEffect(() => {
@@ -40,7 +39,6 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
   }, [initialRiskFilter]);
 
   // Extract unique filter options
-  const states = useMemo(() => Array.from(new Set(works.map((w) => w.state))).filter(Boolean).sort(), [works]);
   const districts = useMemo(() => {
     const list = selectedState ? works.filter((w) => w.state === selectedState) : works;
     return Array.from(new Set(list.map((w) => w.district))).filter(Boolean).sort();

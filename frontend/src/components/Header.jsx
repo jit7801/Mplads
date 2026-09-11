@@ -48,8 +48,8 @@ export default function Header({
               <span className="text-xs sm:text-sm font-bold text-[#1F2933] truncate">
                 MPLADS Risk Intelligence
               </span>
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EFF8FF] text-[#175CD3] border border-[#B2DDFF]">
-                eSAKSHI Decision Support
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F2F4F7] text-[#475467] border border-[#E4E7EC]">
+                Demo Data — Synthetic / Simulated
               </span>
               <span className="hidden 2xl:inline text-[11px] text-[#667085] truncate">
                 — Early warning, empirical evidence and action for every work.
@@ -61,8 +61,8 @@ export default function Header({
         {/* Right: Actions & Role */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           
-          {/* Role Switcher */}
-          <div className="flex items-center gap-1.5" title="eSAKSHI RBAC Profile (Select administrative role)">
+          {/* Role Switcher (MVP Simulation) */}
+          <div className="flex items-center gap-1.5" title="MVP Role Simulator (Production requires government SSO authentication)">
             <label htmlFor="role-select" className="text-xs text-[#667085] hidden md:inline font-medium">
               Role:
             </label>
@@ -70,7 +70,7 @@ export default function Header({
               <select
                 id="role-select"
                 value={currentRole}
-                title="eSAKSHI RBAC Profile (Select administrative role)"
+                title="MVP Role Simulator (Production requires government SSO authentication)"
                 onChange={(e) => {
                   const newRole = e.target.value;
                   setCurrentRole(newRole);

@@ -80,56 +80,60 @@ This document details the operational, data, algorithmic, and interaction flows 
 ### 2. Module Execution Details
 
 #### 2.1 Module 1: Cost Outlier Detection Flow
-1. **Stratification**: All works are grouped by `(work_category, district)`. If a cohort has fewer than 5 records, it falls back to `(work_category, state)` to maintain statistical validity.
+1. **Stratification & Leave-One-Out Exclusion**: All works are grouped by `(work_category, district)`. When evaluating a target work, it is excluded from its own peer cohort so it does not bias peer statistics. If the cohort has fewer than 5 records, it falls back to `(work_category, state)`, then national `work_category`.
 2. **Median & MAD Calculation**:
-   - $\tilde{C} = \text{Median}(\text{Costs})$
-   - $\text{MAD} = \text{Median}(|C_i - \tilde{C}|)$
-3. **Modified Z-Score Calculation**:
-   - $M_i = \frac{0.6745 \cdot (C_i - \tilde{C})}{\text{MAD} + 10^{-6}}$
-4. **Isolation Forest Validation**: A multi-dimensional feature vector `[sanctioned_amount, estimated_cost, cost_per_progress_unit]` is evaluated via `IsolationForest(contamination=0.08)`.
+   - $\tilde{C} = \text{Median}(\text{Peer Costs (excluding current work)})$
+   - $\text{MAD} = \text{Median}(|C_j - \tilde{C}|)$ for peer works $j \neq i$.
+3. **Modified Z-Score & Zero-MAD Fallback**:
+   - If $\text{MAD} > 0$: $M_i = \frac{0.6745 \cdot (C_i - \tilde{C})}{\text{MAD}}$
+   - If $\text{MAD} = 0$: relative deviation fallback $\frac{|C_i - \tilde{C}|}{\tilde{C}}$ (handling $\tilde{C} = 0$ safely).
+4. **Structured Evidence**: Exposes `cost_metric_used` (`SANCTIONED_AMOUNT`), `current_value`, `peer_count`, `peer_median`, `mad`, `modified_z`, `cost_ratio`, and `anomaly_reason`.
 5. **Score Allocation**:
-   - If Cost Ratio $\ge 2.0\times$ or $M_i \ge 3.5 \implies 26\text{--}30$ pts.
-   - If Cost Ratio $\ge 1.5\times$ or $M_i \ge 2.5 \implies 18\text{--}25$ pts.
-   - If Cost Ratio $\ge 1.25\times$ or $M_i \ge 1.5 \implies 10\text{--}17$ pts.
+   - If Cost Ratio $\ge 1.80\times$ or $M_i \ge 2.5 \implies 26\text{--}30$ pts.
+   - If Cost Ratio $\ge 1.45\times$ or $M_i \ge 1.8 \implies 18\text{--}25$ pts.
+   - If Cost Ratio $\ge 1.20\times$ or $M_i \ge 1.2 \implies 10\text{--}17$ pts.
    - Normal baseline $\implies 0\text{--}9$ pts.
    - Expenditure overshoot penalty ($>115\%$ of sanction): $+5$ pts.
 
 #### 2.2 Module 2: Delay & Stagnation Detection Flow
 1. **Progress Gap Calculation**:
    - $\text{Gap}_{\text{prog}} = \text{Financial Progress } (\%) - \text{Physical Progress } (\%)$
-   - Severe Mismatch ($\ge 35\%$ gap): $+14$ pts.
-   - Moderate Mismatch ($20\text{--}35\%$ gap): $+9$ pts.
-   - Mild Mismatch ($10\text{--}20\%$ gap): $+4$ pts.
+   - Severe Mismatch ($\ge 30\%$ gap): $+14$ pts.
+   - Moderate Mismatch ($15\text{--}29\%$ gap): $+9$ pts.
+   - Mild Mismatch ($5\text{--}14\%$ gap): $+4$ pts.
 2. **Inactivity Clock Calculation**:
-   - $\Delta_{\text{dormant}} = \text{Current Date} - \text{Last Update Date}$
-   - Dormancy $\ge 90$ days: $+8$ pts.
-   - Dormancy $45\text{--}89$ days: $+4$ pts.
+   - $\Delta_{\text{dormant}} = \text{Centralized Evaluation Date} - \text{Last Update Date}$
+   - Critical Dormancy ($\ge 90$ days): $+8$ pts.
+   - Warning Dormancy ($45\text{--}89$ days): $+4$ pts.
 3. **Target Date Overrun**:
    - Days overdue beyond expected completion date:
-   - Overdue $> 180$ days: $+8$ pts.
-   - Overdue $60\text{--}180$ days: $+4$ pts.
+   - Critical Overdue ($> 120$ days): $+8$ pts.
+   - Warning Overdue ($45\text{--}120$ days): $+4$ pts.
 4. Total delay score capped at 30 points.
 
 #### 2.3 Module 3: Duplicate & Overlap Detection Flow
 1. **Stage 1 (Spatial Candidate Pruning)**:
-   - All works within the same district are evaluated via spatial coordinates.
-   - Pairs with $\text{Haversine Distance} \le 150\text{ metres}$ are extracted as candidates. Works further than 150m are immediately pruned, eliminating $99\%$ of $O(N^2)$ candidate pairs.
+   - Uses Scikit-learn `BallTree(metric='haversine')` to prune candidate pairs within `SPATIAL_RADIUS_METERS` (default 150m), avoiding unnecessary pairwise string comparisons.
 2. **Stage 2 (Multi-Attribute Similarity Scoring)**:
-   - **Text Cosine Similarity ($S_{\text{text}}$)**: Character/word n-grams $(1, 3)$ vectorization of `work_title` and `work_description`.
+   - **Text Cosine Similarity ($S_{\text{text}}$)**: Sub-word character n-grams $(3, 5)$ TF-IDF on work titles.
    - **Geographic Proximity Factor ($S_{\text{geo}}$)**: $\max(0, 1 - \frac{\text{Distance}}{150})$.
    - **Category Match ($S_{\text{cat}}$)**: $1.0$ if matching, else $0.0$.
    - **Agency Match ($S_{\text{agency}}$)**: $1.0$ if matching, else $0.0$.
    - **Budget Proximity ($S_{\text{cost}}$)**: $\frac{\min(\text{Cost}_A, \text{Cost}_B)}{\max(\text{Cost}_A, \text{Cost}_B)}$.
 3. **Weighted Duplicate Index (WDI)**:
-   - $\text{WDI} = 0.45 \cdot S_{\text{text}} + 0.25 \cdot S_{\text{geo}} + 0.15 \cdot S_{\text{cat}} + 0.10 \cdot S_{\text{agency}} + 0.05 \cdot S_{\text{cost}}$
-4. **Duplicate Risk Points**:
+   - $\text{WDI} = 0.40 \cdot S_{\text{text}} + 0.30 \cdot S_{\text{geo}} + 0.15 \cdot S_{\text{cat}} + 0.10 \cdot S_{\text{agency}} + 0.05 \cdot S_{\text{cost}}$
+4. **Signal Strength Classification**:
+   - $\text{WDI} \ge 0.80 \implies \text{STRONG CANDIDATE}$
+   - $\text{WDI} \ge 0.60 \implies \text{MODERATE CANDIDATE}$
+   - $\text{WDI} < 0.60 \implies \text{WEAK CANDIDATE}$
+   - Label: strictly **`POSSIBLE DUPLICATE / OVERLAP — VERIFY`**.
+5. **Duplicate Risk Points**:
    - $\text{Score} = \text{Round}(\text{WDI} \times 25)$ (0 to 25 points).
 
-#### 2.4 Module 4: Compliance & Documentation Deficit Flow
-- Missing Completion Certificate when status is COMPLETED: $+5$ pts.
-- Financial disbursement $>75\%$ without Utilization Certificate: $+5$ pts.
-- Absence of geo-tagged physical progress photograph: $+3$ pts.
-- Missing entry in District Asset Register: $+2$ pts.
+#### 2.4 Module 4: Compliance & Documentation Deficit Flow (Stage-Aware)
+- Stage-Aware Evaluation:
+  - **Ongoing Works**: Evaluated for missing geo-tagged physical progress photograph (+3 pts) and configurable policy threshold review (`UC_REVIEW_FINANCIAL_PROGRESS_THRESHOLD = 75.0%`, +5 pts).
+  - **Completed Works**: Evaluated for missing Completion Certificate (+5 pts), missing Final Asset Register entry (+2 pts), missing physical progress photograph (+3 pts), and Utilization Certificate review (+5 pts).
 - Total compliance score capped at 15 points.
 
 ---

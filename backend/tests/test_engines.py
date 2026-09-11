@@ -118,3 +118,86 @@ def test_mp_allocations_and_metrics(sample_df):
         assert jaipur_mp is not None
         assert jaipur_mp["total_works"] > 0
         assert jaipur_mp["allocated_amount"] > 0
+
+def test_leave_one_out_peer_statistics():
+    # Construct a cohort of 5 works with 10L each and 1 outlier work of 50L
+    works_data = [
+        {
+            "work_id": f"PEER-{i}",
+            "work_category": "Drinking Water & Tube Wells",
+            "district": "TestDistrict",
+            "state": "TestState",
+            "sanctioned_amount": 1000000.0,
+            "estimated_cost": 1000000.0,
+            "actual_expenditure": 500000.0,
+            "physical_progress": 50.0,
+            "work_title": "Water Point",
+            "work_description": "Drinking water"
+        }
+        for i in range(5)
+    ]
+    works_data.append({
+        "work_id": "OUTLIER-1",
+        "work_category": "Drinking Water & Tube Wells",
+        "district": "TestDistrict",
+        "state": "TestState",
+        "sanctioned_amount": 5000000.0,
+        "estimated_cost": 5000000.0,
+        "actual_expenditure": 1000000.0,
+        "physical_progress": 20.0,
+        "work_title": "Water Point",
+        "work_description": "Drinking water"
+    })
+    test_df = pd.DataFrame(works_data)
+    results, summaries = compute_cost_anomalies(test_df)
+    
+    # Under leave-one-out, the peer median for OUTLIER-1 should be computed strictly across the other 5 works (10L), not shifted by 50L
+    outlier_res = results["OUTLIER-1"]
+    assert outlier_res["peer_median"] == 1000000.0
+    assert outlier_res["cost_ratio"] == 5.0
+    assert outlier_res["peer_count"] == 5
+    assert outlier_res["financial_risk_score"] >= 20
+
+def test_stage_aware_compliance_rules():
+    # Ongoing work at 30% progress with no completion cert should NOT be penalized for missing completion cert
+    ongoing_row = {
+        "work_id": "TEST-ONG-01",
+        "status": "IN_PROGRESS",
+        "physical_progress": 30.0,
+        "financial_progress": 25.0,
+        "completion_certificate": False,
+        "utilization_certificate": False,
+        "audit_certificate": False,
+        "photo_available": True,
+        "asset_register_entry": False
+    }
+    ong_eval = evaluate_work_compliance(ongoing_row)
+    assert ong_eval["project_stage"] == "ONGOING"
+    assert ong_eval["signals"]["missing_completion_certificate"] is False
+    assert ong_eval["signals"]["missing_audit_certificate"] is False
+    assert ong_eval["compliance_risk_score"] == 0
+    
+    # Completed work with missing completion cert and audit cert should be penalized
+    completed_row = {
+        "work_id": "TEST-COMP-01",
+        "status": "COMPLETED",
+        "physical_progress": 100.0,
+        "financial_progress": 100.0,
+        "completion_certificate": False,
+        "utilization_certificate": True,
+        "audit_certificate": False,
+        "photo_available": True,
+        "asset_register_entry": True
+    }
+    comp_eval = evaluate_work_compliance(completed_row)
+    assert comp_eval["project_stage"] == "COMPLETED"
+    assert comp_eval["signals"]["missing_completion_certificate"] is True
+    assert comp_eval["signals"]["missing_audit_certificate"] is True
+    assert comp_eval["compliance_risk_score"] == 7
+
+def test_duplicate_signal_strength(sample_df):
+    _, candidate_pairs = compute_duplicates_and_overlaps(sample_df)
+    assert len(candidate_pairs) > 0
+    for pair in candidate_pairs:
+        assert pair["signal_strength"] in ("STRONG CANDIDATE", "MODERATE CANDIDATE", "WEAK CANDIDATE")
+        assert "POSSIBLE DUPLICATE / OVERLAP — VERIFY" in pair["verification_status"]

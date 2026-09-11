@@ -52,6 +52,16 @@ def root():
         "evaluation_date": settings.EVALUATION_DATE
     }
 
+@app.get("/health")
+def root_health():
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "data_provenance": settings.DATA_SOURCE_LABEL,
+        "is_demo_mode": settings.IS_DEMO_MODE,
+        "evaluation_date": settings.EVALUATION_DATE
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)

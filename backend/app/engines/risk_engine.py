@@ -1,4 +1,6 @@
+import math
 from typing import Dict, Any, Tuple, List
+import numpy as np
 import pandas as pd
 from app.core.config import settings
 from app.engines.data_validator import validate_dataset
@@ -113,15 +115,22 @@ def run_full_risk_pipeline(
         # Clean row dictionary for strict JSON compatibility (replacing NaN/inf with None)
         clean_row = {}
         for k, v in row.to_dict().items():
-            try:
-                if isinstance(v, float) and (np.isnan(v) or np.isinf(v)):
-                    clean_row[k] = None
-                elif pd.isna(v):
-                    clean_row[k] = None
-                else:
-                    clean_row[k] = v
-            except Exception:
+            if isinstance(v, (int, bool, str)):
                 clean_row[k] = v
+            elif isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+                clean_row[k] = None
+            elif isinstance(v, (list, tuple, dict)):
+                clean_row[k] = v
+            elif v is None:
+                clean_row[k] = None
+            else:
+                try:
+                    if pd.isna(v):
+                        clean_row[k] = None
+                    else:
+                        clean_row[k] = v
+                except Exception:
+                    clean_row[k] = v
 
         work_record = {
             **clean_row,

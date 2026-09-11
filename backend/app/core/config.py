@@ -105,8 +105,13 @@ class Settings:
     DUP_WEIGHT_AGENCY: float = 0.10
     DUP_WEIGHT_COST: float = 0.05
     
-    # Data Provenance & Source Label
-    DATA_SOURCE_LABEL: str = os.getenv("MPLADS_DATA_SOURCE", "MPLADS_ESAKSHI_PIPELINE")
-    IS_DEMO_MODE: bool = False
+    # Configurable Compliance Policy Thresholds
+    UC_REVIEW_FINANCIAL_PROGRESS_THRESHOLD: float = float(os.getenv("MPLADS_UC_THRESHOLD", "75.0"))
+    ASSET_REGISTER_REVIEW_PHYSICAL_PROGRESS_THRESHOLD: float = float(os.getenv("MPLADS_ASSET_REG_THRESHOLD", "75.0"))
+    
+    # Data Provenance & Target
+    DATA_SOURCE_LABEL: str = os.getenv("MPLADS_DATA_SOURCE", "SYNTHETIC_SIMULATED")
+    IS_DEMO_MODE: bool = os.getenv("MPLADS_DEMO_MODE", "true").lower() in ("true", "1", "yes")
+    PRODUCTION_TARGET_SOURCE: str = "AUTHORIZED_ESAKSHI_DATA"
 
 settings = Settings()

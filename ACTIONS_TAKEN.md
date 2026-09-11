@@ -2,13 +2,13 @@
 
 **Date**: September 12, 2026  
 **Repository**: [jit7801/Mplads](https://github.com/jit7801/Mplads)  
-**Status**: All systems operational, verified, and passing tests (21/21 Pytest suite passed, Frontend clean build)
+**Status**: All systems operational, verified, and passing tests (24/24 Pytest suite passed, Frontend clean build & 0 lint errors, API Smoke tests 100% 200 OK)
 
 ---
 
 ## 1. Executive Summary
 
-This report documents the end-to-end technical audit, architectural hardening, and algorithmic enhancements performed on the **MPLADS Risk Intelligence & eSAKSHI Decision Support Platform**.
+This report documents the comprehensive final hardening pass (Fixes 1–30) performed on the **MPLADS Risk Intelligence Platform**.
 
 The platform is designed to:
 > **Detect risk signals → explain why a work is flagged → prioritize it → recommend human administrative verification.**
@@ -17,26 +17,13 @@ The system does **not** claim to prove guilt or fraud; all final decisions and a
 
 ---
 
-## 2. Inventory of Files Changed
+## 2. Inventory of Files Changed & Hardened
 
 | Component | File Path | Action | Description |
 |:---|:---|:---:|:---|
-| **Core Config** | [`backend/app/core/config.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/app/core/config.py) | **MODIFIED** | Added centralized evaluation date resolution, configurable threshold parameters, and CORS whitelist. |
-| **Validation Layer** | [`backend/app/engines/data_validator.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/app/engines/data_validator.py) | **NEW** | Added ingestion validation for IDs, amounts, percentages, India coordinates (8–37.5°N, 68–97.5°E), chronology, and status consistency. |
-| **Compliance Engine** | [`backend/app/engines/compliance_engine.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/app/engines/compliance_engine.py) | **NEW** | Disaggregated statutory compliance indicators (completion cert, utilization cert, photo, asset register, audit cert). |
-| **Cost Engine** | [`backend/app/engines/cost_engine.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/app/engines/cost_engine.py) | **MODIFIED** | Implemented multi-tier cohort fallback (District → State → National → Insufficient), unit cost normalization, robust zero-MAD handler, and transparent Isolation Forest signal. |
+| **Core Config** | [`backend/app/core/config.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/app/core/config.py) | **MODIFIED** | Configured `DATA_SOURCE_LABEL = "SYNTHETIC_SIMULATED"`, `IS_DEMO_MODE = True`, `PRODUCTION_TARGET_SOURCE = "AUTHORIZED_ESAKSHI_DATA"`, centralized evaluation date, and configurable compliance thresholds. |
+| **Cost Engine** | [`backend/app/engines/cost_engine.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/app/engines/cost_engine.py) | **MODIFIED** | Implemented leave-one-out peer statistics (excluding target work from its own cohort), safe MAD=0 relative deviation fallback, safe zero-median handling, and structured evidence fields (`cost_metric_used = "SANCTIONED_AMOUNT"`). |
 | **Delay Engine** | [`backend/app/engines/delay_engine.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/app/engines/delay_engine.py) | **MODIFIED** | Injected centralized evaluation date, configurable dormancy/overrun thresholds, and clear physical-fiscal divergence explanations. |
-| **Duplicate Engine** | [`backend/app/engines/duplicate_engine.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/app/engines/duplicate_engine.py) | **MODIFIED** | Implemented $O(N \log N)$ `BallTree` spatial candidate indexing, sub-word TF-IDF n-grams, and advisory governance labeling (`POSSIBLE DUPLICATE / OVERLAP — VERIFY`). |
-| **Unified Risk Engine**| [`backend/app/engines/risk_engine.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/app/engines/risk_engine.py) | **MODIFIED** | Integrated data validator and compliance engine, normalized weight scaling, and replaced punitive instructions with advisory recommendations. |
-| **API Router** | [`backend/app/api/v1/router.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/app/api/v1/router.py) | **MODIFIED** | Added strict Pydantic model validation ($\sum \text{weights} = 100$), GeoJSON coordinate filtering, and structured logging. |
-| **App Entrypoint** | [`backend/main.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/main.py) | **MODIFIED** | Configured restricted CORS origins, structured logging, and provenance metadata on root. |
-| **Test Suites** | [`backend/tests/test_engines.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/tests/test_engines.py) | **MODIFIED** | Added tests for zero-MAD cohorts, unit normalization, centralized date, BallTree duplicates, and compliance signals. |
-| | [`backend/tests/test_validation.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/tests/test_validation.py) | **NEW** | Validates bounds, chronology errors, negative amounts, and clean record pass-through. |
-| | [`backend/tests/test_api.py`](file:///Users/jiteshvishnoi/Desktop/voip2/backend/tests/test_api.py) | **NEW** | Smoke tests covering REST endpoints, GeoJSON coordinate bounds, and strict weight sum validation rejection. |
-| **Frontend UI** | [`frontend/src/components/Header.jsx`](file:///Users/jiteshvishnoi/Desktop/voip2/frontend/src/components/Header.jsx) | **MODIFIED** | Added "eSAKSHI Decision Support" badge and administrative role selector. |
-| | [`frontend/src/components/SettingsModal.jsx`](file:///Users/jiteshvishnoi/Desktop/voip2/frontend/src/components/SettingsModal.jsx) | **MODIFIED** | Added pre-submission validation preventing invalid policy weight sums. |
-| | [`frontend/src/components/CitizenView.jsx`](file:///Users/jiteshvishnoi/Desktop/voip2/frontend/src/components/CitizenView.jsx) | **MODIFIED** | Removed unused import and ensured strict scoping of public asset attributes. |
-| **Documentation** | [`README.md`](file:///Users/jiteshvishnoi/Desktop/voip2/README.md) | **MODIFIED** | Rewritten with governance principles, architecture diagrams, testing commands, and ethical guidelines. |
 | | [`decisions.md`](file:///Users/jiteshvishnoi/Desktop/voip2/decisions.md) | **MODIFIED** | Added ADRs 6 through 10 covering centralized dates, validation layer, BallTree indexing, compliance signals, and advisory framing. |
 | | [`flow.md`](file:///Users/jiteshvishnoi/Desktop/voip2/flow.md) | **MODIFIED** | Updated data pipeline flow diagram with validator, compliance engine, and BallTree indexing. |
 

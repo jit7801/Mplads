@@ -1,10 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import RiskBadge from './RiskBadge';
 import { 
-  Coins, 
-  Filter, 
   Search, 
-  TrendingUp, 
   Info, 
   Download, 
   X, 
