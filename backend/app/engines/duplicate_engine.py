@@ -47,9 +47,31 @@ def haversine_distance_meters(lat1: float, lon1: float, lat2: float, lon2: float
     c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
     return R * c
 
+def clean_record_for_json(d: Dict[str, Any]) -> Dict[str, Any]:
+    """Ensures NaN / inf values in dictionary records are converted to None for JSON compliance."""
+    clean = {}
+    for k, v in d.items():
+        if isinstance(v, (int, bool, str)):
+            clean[k] = v
+        elif isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+            clean[k] = None
+        elif isinstance(v, (list, tuple, dict)):
+            clean[k] = v
+        elif v is None:
+            clean[k] = None
+        else:
+            try:
+                if pd.isna(v):
+                    clean[k] = None
+                else:
+                    clean[k] = v
+            except Exception:
+                clean[k] = v
+    return clean
+
 def compute_duplicates_and_overlaps(
     df: pd.DataFrame,
-    max_dist_meters: float | None = None
+    max_dist_meters: float = None
 ) -> Tuple[Dict[str, Dict[str, Any]], List[Dict[str, Any]]]:
     """
     Two-stage scalable duplicate and overlapping asset detection:
@@ -78,7 +100,7 @@ def compute_duplicates_and_overlaps(
             "explanation": "No overlapping or duplicate candidate works detected in immediate vicinity."
         }
         
-    records = df.to_dict("records")
+    records = [clean_record_for_json(r) for r in df.to_dict("records")]
     n = len(records)
     if n < 2:
         return per_work, candidate_pairs

@@ -1,4 +1,5 @@
 import os
+import math
 import logging
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException, Query, status
@@ -9,6 +10,27 @@ from app.engines.risk_engine import run_full_risk_pipeline
 
 logger = logging.getLogger("mplads.api")
 router = APIRouter()
+
+def sanitize_for_json(obj: Any) -> Any:
+    """Recursively converts NaN, inf, and pandas NA values to None for strict JSON compliance."""
+    if isinstance(obj, (int, bool, str)):
+        return obj
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    if isinstance(obj, dict):
+        return {k: sanitize_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [sanitize_for_json(item) for item in obj]
+    if obj is None:
+        return None
+    try:
+        if pd.isna(obj):
+            return None
+    except Exception:
+        pass
+    return obj
 
 # In-memory storage for cached analysis results
 _DATA_CACHE: Dict[str, Any] = {
@@ -125,11 +147,12 @@ def load_and_run_pipeline():
         
     _DATA_CACHE["df"] = df
     works, summary, dup_pairs, cohort_stats = run_full_risk_pipeline(df)
-    _DATA_CACHE["works"] = works
-    _DATA_CACHE["works_map"] = {w["work_id"]: w for w in works}
-    _DATA_CACHE["summary"] = summary
-    _DATA_CACHE["dup_pairs"] = dup_pairs
-    _DATA_CACHE["cohort_stats"] = cohort_stats
+    clean_works = sanitize_for_json(works)
+    _DATA_CACHE["works"] = clean_works
+    _DATA_CACHE["works_map"] = {w["work_id"]: w for w in clean_works}
+    _DATA_CACHE["summary"] = sanitize_for_json(summary)
+    _DATA_CACHE["dup_pairs"] = sanitize_for_json(dup_pairs)
+    _DATA_CACHE["cohort_stats"] = sanitize_for_json(cohort_stats)
     
     # Multi-candidate path search for MP Allocations dataset
     mps_df = None
@@ -394,11 +417,12 @@ def recalculate_risk_scores(req: RecalculateRequest):
         weight_duplicate=req.weight_duplicate,
         weight_compliance=req.weight_compliance
     )
-    _DATA_CACHE["works"] = works
-    _DATA_CACHE["works_map"] = {w["work_id"]: w for w in works}
-    _DATA_CACHE["summary"] = summary
-    _DATA_CACHE["dup_pairs"] = dup_pairs
-    _DATA_CACHE["cohort_stats"] = cohort_stats
+    clean_works = sanitize_for_json(works)
+    _DATA_CACHE["works"] = clean_works
+    _DATA_CACHE["works_map"] = {w["work_id"]: w for w in clean_works}
+    _DATA_CACHE["summary"] = sanitize_for_json(summary)
+    _DATA_CACHE["dup_pairs"] = sanitize_for_json(dup_pairs)
+    _DATA_CACHE["cohort_stats"] = sanitize_for_json(cohort_stats)
     
     # Recompute MP metrics
     mps_df = _DATA_CACHE.get("mps_df")

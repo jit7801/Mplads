@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? "http://localhost:8001/api/v1" : "/api/v1");
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
 
 export async function fetchSummary(params = {}) {
   const query = new URLSearchParams(params).toString();

@@ -108,9 +108,11 @@ function AppContent() {
     navigateTab('DUPLICATES');
   };
 
-  const loadData = async () => {
-    setLoading(true);
-    setError(null);
+  const loadData = async (retryCount = 0) => {
+    if (retryCount === 0) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const [sumData, worksData, dupData] = await Promise.all([
         fetchSummary(),
@@ -120,10 +122,19 @@ function AppContent() {
       setSummary(sumData);
       setWorks(worksData.items || []);
       setDuplicatePairs(dupData.pairs || []);
+      setError(null);
+      setLoading(false);
     } catch (err) {
+      console.warn(`API Fetch attempt ${retryCount + 1} failed:`, err.message);
+      // Auto-retry up to 3 times with progressive backoff (handles backend warming up)
+      if (retryCount < 3) {
+        setTimeout(() => {
+          loadData(retryCount + 1);
+        }, 1200 * (retryCount + 1));
+        return;
+      }
       console.error('API Fetch Error:', err);
-      setError('Unable to connect to the MPLADS Risk Intelligence engine. Ensure the backend server is running.');
-    } finally {
+      setError('Unable to connect to the MPLADS Risk Intelligence engine. Ensure the backend server is running on port 8001.');
       setLoading(false);
     }
   };
