@@ -28,8 +28,8 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
 
   const [sortBy, setSortBy] = useState('overall_risk_score');
-  const [sortDir, setSortDir] = useState('desc');
-  const [page, setPage] = useState(1);
+  const [sortOrder, setSortOrder] = useState('desc');
+  const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 12;
 
   useEffect(() => {
