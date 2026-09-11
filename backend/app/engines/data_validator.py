@@ -19,6 +19,26 @@ def parse_date_safe(val: Any) -> datetime | None:
             continue
     return None
 
+def to_float_safe(val: Any) -> Tuple[float | None, bool]:
+    """
+    Returns (parsed_float_or_None, is_valid_syntax).
+    None, NaN, or empty strings are treated as missing (is_valid=True), not malformed.
+    """
+    if val is None:
+        return None, True
+    try:
+        if pd.isna(val):
+            return None, True
+    except Exception:
+        pass
+    s = str(val).strip()
+    if s == "" or s.lower() in ("nan", "none", "null"):
+        return None, True
+    try:
+        return float(s), True
+    except (ValueError, TypeError):
+        return None, False
+
 def validate_dataset(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """
     Validates the dataset prior to risk engine ingestion.
@@ -48,70 +68,58 @@ def validate_dataset(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, Any]]:
         w_id = str(row.get("work_id", "")).strip()
         
         # 1. Work ID checks
-        if not w_id or w_id == "nan":
+        if not w_id or w_id.lower() in ("nan", "none"):
             row_warnings.append("Missing or empty work_id.")
         elif w_id in dup_ids:
             row_warnings.append(f"Duplicate work_id detected across multiple records: '{w_id}'.")
             
         # 2. Amounts checks
-        try:
-            sanct = float(row.get("sanctioned_amount", 0.0))
-            if sanct < 0:
-                row_warnings.append(f"Negative sanctioned amount: ₹{sanct}.")
-                negative_amt_count += 1
-        except (ValueError, TypeError):
+        sanct, sanct_ok = to_float_safe(row.get("sanctioned_amount"))
+        if not sanct_ok:
             row_warnings.append("Malformed sanctioned_amount value.")
+        elif sanct is not None and sanct < 0:
+            row_warnings.append(f"Negative sanctioned amount: ₹{sanct}.")
+            negative_amt_count += 1
             
-        try:
-            est = float(row.get("estimated_cost", 0.0))
-            if est < 0:
-                row_warnings.append(f"Negative estimated cost: ₹{est}.")
-                negative_amt_count += 1
-        except (ValueError, TypeError):
-            pass
+        est, est_ok = to_float_safe(row.get("estimated_cost"))
+        if not est_ok:
+            row_warnings.append("Malformed estimated_cost value.")
+        elif est is not None and est < 0:
+            row_warnings.append(f"Negative estimated cost: ₹{est}.")
+            negative_amt_count += 1
             
-        try:
-            exp = float(row.get("actual_expenditure", 0.0))
-            if exp < 0:
-                row_warnings.append(f"Negative actual expenditure: ₹{exp}.")
-                negative_amt_count += 1
-        except (ValueError, TypeError):
-            pass
+        exp, exp_ok = to_float_safe(row.get("actual_expenditure"))
+        if not exp_ok:
+            row_warnings.append("Malformed actual_expenditure value.")
+        elif exp is not None and exp < 0:
+            row_warnings.append(f"Negative actual expenditure: ₹{exp}.")
+            negative_amt_count += 1
             
         # 3. Progress percentages checks
-        try:
-            phys = float(row.get("physical_progress", 0.0))
-            if phys < 0.0 or phys > 100.0:
-                row_warnings.append(f"Physical progress out of range [0, 100]: {phys}%.")
-        except (ValueError, TypeError):
+        phys, phys_ok = to_float_safe(row.get("physical_progress"))
+        if not phys_ok:
             row_warnings.append("Malformed physical_progress percentage.")
+        elif phys is not None and (phys < 0.0 or phys > 100.0):
+            row_warnings.append(f"Physical progress out of range [0, 100]: {phys}%.")
             
-        try:
-            fin = float(row.get("financial_progress", 0.0))
-            if fin < 0.0 or fin > 100.0:
-                row_warnings.append(f"Financial progress out of range [0, 100]: {fin}%.")
-        except (ValueError, TypeError):
+        fin, fin_ok = to_float_safe(row.get("financial_progress"))
+        if not fin_ok:
             row_warnings.append("Malformed financial_progress percentage.")
+        elif fin is not None and (fin < 0.0 or fin > 100.0):
+            row_warnings.append(f"Financial progress out of range [0, 100]: {fin}%.")
             
         # 4. Coordinate validation (India bounding box)
-        lat = row.get("latitude")
-        lon = row.get("longitude")
-        has_valid_coords = True
-        try:
-            lat_f = float(lat) if lat is not None and not pd.isna(lat) else None
-            lon_f = float(lon) if lon is not None and not pd.isna(lon) else None
-            if lat_f is not None and lon_f is not None:
-                if not (INDIA_LAT_MIN <= lat_f <= INDIA_LAT_MAX and INDIA_LON_MIN <= lon_f <= INDIA_LON_MAX):
-                    row_warnings.append(f"Coordinates ({lat_f:.4f}, {lon_f:.4f}) fall outside India boundaries.")
-                    invalid_coord_count += 1
-                    has_valid_coords = False
-            else:
-                row_warnings.append("Missing geospatial coordinates.")
-                has_valid_coords = False
-        except (ValueError, TypeError):
+        lat_f, lat_ok = to_float_safe(row.get("latitude"))
+        lon_f, lon_ok = to_float_safe(row.get("longitude"))
+        
+        if not lat_ok or not lon_ok:
             row_warnings.append("Malformed coordinate numerical values.")
             invalid_coord_count += 1
-            has_valid_coords = False
+        elif lat_f is None or lon_f is None:
+            row_warnings.append("Missing geospatial coordinates.")
+        elif not (INDIA_LAT_MIN <= lat_f <= INDIA_LAT_MAX and INDIA_LON_MIN <= lon_f <= INDIA_LON_MAX):
+            row_warnings.append(f"Coordinates ({lat_f:.4f}, {lon_f:.4f}) fall outside India boundaries.")
+            invalid_coord_count += 1
             
         # 5. Temporal chronology & date consistency
         d_rec = parse_date_safe(row.get("recommendation_date"))

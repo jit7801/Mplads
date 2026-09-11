@@ -1,3 +1,4 @@
+import os
 import logging
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException, Query, status
@@ -22,12 +23,30 @@ _DATA_CACHE: Dict[str, Any] = {
     "mps_map": {}
 }
 
+def normalize_mp_token(name: str) -> str:
+    """Strips honorifics, punctuation, and whitespace for robust MP matching."""
+    s = str(name).strip().lower()
+    for prefix in ("shri ", "smt ", "dr. ", "dr ", "hon. ", "hon'ble "):
+        if s.startswith(prefix):
+            s = s[len(prefix):].strip()
+    return "".join(ch for ch in s if ch.isalnum())
+
 def compute_mp_metrics(mps_df: pd.DataFrame, works: list[dict]) -> tuple[list[dict], dict]:
-    works_by_mp: Dict[str, list[dict]] = {}
+    # Index works by normalized MP token and by constituency token
+    works_by_mp_token: Dict[str, list[dict]] = {}
+    works_by_constituency: Dict[str, list[dict]] = {}
+    
     for w in works:
-        mp = str(w.get("mp_name", "")).strip().lower()
+        mp = str(w.get("mp_name", "")).strip()
+        const = str(w.get("constituency", "")).strip()
         if mp:
-            works_by_mp.setdefault(mp, []).append(w)
+            tok = normalize_mp_token(mp)
+            if tok:
+                works_by_mp_token.setdefault(tok, []).append(w)
+        if const:
+            c_tok = normalize_mp_token(const)
+            if c_tok:
+                works_by_constituency.setdefault(c_tok, []).append(w)
             
     mp_list = []
     mp_map = {}
@@ -42,7 +61,11 @@ def compute_mp_metrics(mps_df: pd.DataFrame, works: list[dict]) -> tuple[list[di
         except (ValueError, TypeError):
             allocated = 147000000.0
             
-        mp_works = works_by_mp.get(mp_name.lower(), [])
+        # Match by normalized MP name first, then fallback to constituency
+        mp_tok = normalize_mp_token(mp_name)
+        const_tok = normalize_mp_token(constituency)
+        mp_works = works_by_mp_token.get(mp_tok) or works_by_constituency.get(const_tok) or []
+        
         total_sanctioned = sum(float(w.get("sanctioned_amount", 0.0)) for w in mp_works)
         total_spent = sum(float(w.get("actual_expenditure", 0.0)) for w in mp_works)
         high_risk_count = sum(1 for w in mp_works if w.get("risk_level") in ["CRITICAL", "HIGH"])
@@ -50,8 +73,15 @@ def compute_mp_metrics(mps_df: pd.DataFrame, works: list[dict]) -> tuple[list[di
         util_rate = round((total_sanctioned / allocated * 100.0), 2) if allocated > 0 else 0.0
         rem_balance = round(max(0.0, allocated - total_sanctioned), 2)
         
+        # Safe integer parsing for sr_no
+        sr_val = row.get("sr_no", 0)
+        try:
+            sr_no = int(float(sr_val)) if pd.notna(sr_val) and str(sr_val).strip() != "" else 0
+        except (ValueError, TypeError):
+            sr_no = 0
+            
         entry = {
-            "sr_no": int(row.get("sr_no", 0)),
+            "sr_no": sr_no,
             "state": state,
             "mp_name": mp_name,
             "constituency": constituency,
@@ -66,18 +96,33 @@ def compute_mp_metrics(mps_df: pd.DataFrame, works: list[dict]) -> tuple[list[di
         }
         mp_list.append(entry)
         mp_map[mp_name.lower()] = entry
+        if const_tok:
+            mp_map[constituency.lower()] = entry
         
     return mp_list, mp_map
 
 def load_and_run_pipeline():
     logger.info("Loading MPLADS analytical pipeline...")
-    try:
-        df = pd.read_csv(settings.DATA_PATH)
-    except Exception as e:
-        logger.warning(f"Failed to load from {settings.DATA_PATH}, falling back to default relative path. Error: {e}")
-        df = pd.read_csv("../data/synthetic_mplads_works.csv")
+    # Multi-candidate path search for works dataset
+    df = None
+    works_candidates = [
+        settings.DATA_PATH,
+        "data/synthetic_mplads_works.csv",
+        "../data/synthetic_mplads_works.csv",
+        "../../data/synthetic_mplads_works.csv"
+    ]
+    for c in works_candidates:
+        if c and os.path.exists(c):
+            try:
+                df = pd.read_csv(c)
+                break
+            except Exception:
+                continue
+                
+    if df is None:
+        logger.error("Could not find works dataset in any standard candidate paths. Initializing empty.")
+        df = pd.DataFrame()
         
-    df = df.fillna("")
     _DATA_CACHE["df"] = df
     works, summary, dup_pairs, cohort_stats = run_full_risk_pipeline(df)
     _DATA_CACHE["works"] = works
@@ -86,14 +131,24 @@ def load_and_run_pipeline():
     _DATA_CACHE["dup_pairs"] = dup_pairs
     _DATA_CACHE["cohort_stats"] = cohort_stats
     
-    # Load MP Allocations Master Dataset
-    try:
-        mps_df = pd.read_csv(settings.MP_DATA_PATH)
-    except Exception as e:
-        try:
-            mps_df = pd.read_csv("../data/mp_allocations.csv")
-        except Exception:
-            mps_df = pd.DataFrame()
+    # Multi-candidate path search for MP Allocations dataset
+    mps_df = None
+    mps_candidates = [
+        settings.MP_DATA_PATH,
+        "data/mp_allocations.csv",
+        "../data/mp_allocations.csv",
+        "../../data/mp_allocations.csv"
+    ]
+    for c in mps_candidates:
+        if c and os.path.exists(c):
+            try:
+                mps_df = pd.read_csv(c)
+                break
+            except Exception:
+                continue
+                
+    if mps_df is None:
+        mps_df = pd.DataFrame()
             
     _DATA_CACHE["mps_df"] = mps_df
     if not mps_df.empty:

@@ -105,14 +105,26 @@ def run_full_risk_pipeline(
             actions.append("Review project estimate, technical sanction, bill of quantities (BOQ), and applicable Schedule of Rates (SOR).")
         if cmp_eval["compliance_risk_score"] >= 5:
             actions.append("Review fund-release eligibility according to applicable rules and pending statutory documentation.")
-            
         if not actions:
             actions.append("Maintain standard periodic administrative oversight.")
             
         rec_action = " ".join(actions) + " (All recommendations are advisory and subject to field verification by authorized administrative authorities)."
-        
+
+        # Clean row dictionary for strict JSON compatibility (replacing NaN/inf with None)
+        clean_row = {}
+        for k, v in row.to_dict().items():
+            try:
+                if isinstance(v, float) and (np.isnan(v) or np.isinf(v)):
+                    clean_row[k] = None
+                elif pd.isna(v):
+                    clean_row[k] = None
+                else:
+                    clean_row[k] = v
+            except Exception:
+                clean_row[k] = v
+
         work_record = {
-            **row.to_dict(),
+            **clean_row,
             "overall_risk_score": total_score,
             "risk_level": level,
             "financial_risk": fin_score,
