@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Explainable Risk Intelligence Layer for MPLADS Scheme (SIH26102)",
+    description="Explainable Risk Intelligence Layer for MPLADS Scheme",
     lifespan=lifespan
 )
 
@@ -37,8 +37,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount API V1
+# Mount API V1 and alias for direct /api access
 app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(api_router, prefix="/api")
 
 @app.get("/")
 def root():

@@ -1,7 +1,7 @@
 # Explainable Risk Intelligence Layer for MPLADS (ERIL)
 ## System Flow & Architecture Specification (`flow.md`)
 
-This document details the operational, data, algorithmic, and interaction flows of the **Explainable Risk Intelligence Layer (ERIL)** built for **SIH26102 (MPLAD Scheme Anomaly, Fraud & Inefficiency Detection)**.
+This document details the operational, data, algorithmic, and interaction flows of the **Explainable Risk Intelligence Layer (ERIL)** built for **MPLAD Scheme Anomaly, Risk & Inefficiency Detection**.
 
 ---
 

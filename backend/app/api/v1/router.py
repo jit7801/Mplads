@@ -1,6 +1,7 @@
 import os
 import math
 import logging
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, Field, model_validator
@@ -42,7 +43,10 @@ _DATA_CACHE: Dict[str, Any] = {
     "cohort_stats": {},
     "mps_df": None,
     "mps_list": [],
-    "mps_map": {}
+    "mps_map": {},
+    "field_verifications": [],
+    "processed_operations": {},
+    "project_versions": {}
 }
 
 def normalize_mp_token(name: str) -> str:
@@ -148,6 +152,10 @@ def load_and_run_pipeline():
     _DATA_CACHE["df"] = df
     works, summary, dup_pairs, cohort_stats = run_full_risk_pipeline(df)
     clean_works = sanitize_for_json(works)
+    versions = _DATA_CACHE.setdefault("project_versions", {})
+    for w in clean_works:
+        w_id = w["work_id"]
+        w["version"] = versions.setdefault(w_id, 1)
     _DATA_CACHE["works"] = clean_works
     _DATA_CACHE["works_map"] = {w["work_id"]: w for w in clean_works}
     _DATA_CACHE["summary"] = sanitize_for_json(summary)
@@ -418,6 +426,10 @@ def recalculate_risk_scores(req: RecalculateRequest):
         weight_compliance=req.weight_compliance
     )
     clean_works = sanitize_for_json(works)
+    versions = _DATA_CACHE.setdefault("project_versions", {})
+    for w in clean_works:
+        w_id = w["work_id"]
+        w["version"] = versions.setdefault(w_id, 1)
     _DATA_CACHE["works"] = clean_works
     _DATA_CACHE["works_map"] = {w["work_id"]: w for w in clean_works}
     _DATA_CACHE["summary"] = sanitize_for_json(summary)
@@ -549,4 +561,257 @@ def get_state_summaries():
     return {
         "total_states": len(result),
         "states": result
+    }
+
+class FieldVerificationRequest(BaseModel):
+    operation_id: str = Field(..., description="Unique client operation ID for idempotency")
+    progress: float = Field(..., ge=0.0, le=100.0, description="Verified physical progress percentage (0-100)")
+    verification_status: str = Field(..., description="Verification status e.g. FULLY_VERIFIED, PARTIALLY_VERIFIED, DISCREPANCY_FOUND")
+    remarks: Optional[str] = Field(None, description="Field inspection observations and notes")
+    latitude: Optional[float] = Field(None, description="Field captured latitude")
+    longitude: Optional[float] = Field(None, description="Field captured longitude")
+    verified_at: Optional[str] = Field(None, description="ISO timestamp of field verification")
+    user_id: Optional[str] = Field("FIELD_OFFICER_01", description="Authorized officer ID")
+    device_id: Optional[str] = Field(None, description="Client device identifier")
+    evidence_photo: Optional[str] = Field(None, description="Base64 or URL of captured photo")
+    expected_version: Optional[int] = Field(None, description="Expected project version for concurrency control")
+
+    @model_validator(mode="after")
+    def validate_coordinates_if_present(self):
+        if self.latitude is not None or self.longitude is not None:
+            if self.latitude is None or self.longitude is None:
+                raise ValueError("Both latitude and longitude must be provided together.")
+            if not (8.0 <= self.latitude <= 37.5):
+                raise ValueError(f"Latitude {self.latitude} outside valid India bounding box (8.0 - 37.5).")
+            if not (68.0 <= self.longitude <= 97.5):
+                raise ValueError(f"Longitude {self.longitude} outside valid India bounding box (68.0 - 97.5).")
+        return self
+
+@router.post("/projects/{project_id}/verification")
+def record_field_verification(project_id: str, req: FieldVerificationRequest):
+    """
+    Submits an offline or online field verification with idempotency protection,
+    optimistic concurrency conflict detection, and central AI risk recalculation.
+    """
+    pid = project_id.strip()
+
+    # 1. Idempotency Check: Return previously processed result for duplicate operation_id
+    processed = _DATA_CACHE.setdefault("processed_operations", {})
+    if req.operation_id in processed:
+        logger.info(f"Idempotent hit: operation_id '{req.operation_id}' already processed. Returning cached response.")
+        return processed[req.operation_id]
+
+    # 2. Project Existence Validation
+    works_map = _DATA_CACHE.get("works_map", {})
+    server_work = works_map.get(pid)
+    if not server_work:
+        # Check case-insensitive match
+        for k, v in works_map.items():
+            if k.lower() == pid.lower():
+                server_work = v
+                pid = k
+                break
+        if not server_work:
+            raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found.")
+
+    # 3. Optimistic Concurrency Control (Version Conflict Detection)
+    versions = _DATA_CACHE.setdefault("project_versions", {})
+    current_version = versions.get(pid, server_work.get("version", 1))
+
+    if req.expected_version is not None and req.expected_version != current_version:
+        logger.warning(
+            f"Concurrency Conflict on '{pid}': expected_version={req.expected_version} != current_version={current_version}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "Conflict detected: Project was updated after it was downloaded. Please review latest data before submitting.",
+                "expected_version": req.expected_version,
+                "current_version": current_version,
+                "server_work": {
+                    "work_id": server_work["work_id"],
+                    "work_title": server_work["work_title"],
+                    "district": server_work["district"],
+                    "physical_progress": server_work.get("physical_progress"),
+                    "financial_progress": server_work.get("financial_progress"),
+                    "overall_risk_score": server_work.get("overall_risk_score"),
+                    "risk_level": server_work.get("risk_level"),
+                    "version": current_version
+                }
+            }
+        )
+
+    # 4. Record Field Verification in Audit Ledger
+    all_verifications = _DATA_CACHE.setdefault("field_verifications", [])
+    ver_id = f"VER-{len(all_verifications) + 1:04d}"
+    
+    prev_progress = float(server_work.get("physical_progress", 0.0))
+    prev_score = int(server_work.get("overall_risk_score", 0))
+    prev_level = str(server_work.get("risk_level", "LOW"))
+    prev_delay = int(server_work.get("delay_risk", 0))
+
+    verification_record = {
+        "verification_id": ver_id,
+        "operation_id": req.operation_id,
+        "project_id": pid,
+        "user_id": req.user_id or "FIELD_OFFICER_01",
+        "device_id": req.device_id,
+        "progress": req.progress,
+        "verification_status": req.verification_status,
+        "remarks": req.remarks or "",
+        "latitude": req.latitude if req.latitude is not None else server_work.get("latitude"),
+        "longitude": req.longitude if req.longitude is not None else server_work.get("longitude"),
+        "location_captured": (req.latitude is not None and req.longitude is not None),
+        "verified_at": req.verified_at or datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "has_photo": bool(req.evidence_photo),
+        "evidence_photo": req.evidence_photo if req.evidence_photo else None,
+        "previous_progress": prev_progress,
+        "previous_risk_score": prev_score,
+        "previous_version": current_version,
+        "new_version": current_version + 1,
+        "sync_status": "synced"
+    }
+    all_verifications.append(verification_record)
+
+    # 5. Update Project in Underlying DataFrame
+    df = _DATA_CACHE.get("df")
+    if df is not None and not df.empty and "work_id" in df.columns:
+        mask = df["work_id"].astype(str).str.strip() == pid
+        if mask.any():
+            df.loc[mask, "physical_progress"] = float(req.progress)
+            if req.evidence_photo:
+                df.loc[mask, "photo_available"] = True
+            if req.latitude is not None and req.longitude is not None:
+                df.loc[mask, "latitude"] = float(req.latitude)
+                df.loc[mask, "longitude"] = float(req.longitude)
+            v_date = req.verified_at.split("T")[0] if (req.verified_at and "T" in req.verified_at) else (req.verified_at or settings.EVALUATION_DATE)
+            df.loc[mask, "last_update_date"] = v_date
+
+    # 6. Increment Version
+    new_version = current_version + 1
+    versions[pid] = new_version
+
+    # 7. Central AI Risk Recalculation using existing analytical pipeline
+    if df is not None and not df.empty:
+        works, summary, dup_pairs, cohort_stats = run_full_risk_pipeline(df)
+        clean_works = sanitize_for_json(works)
+        for w in clean_works:
+            w_id = w["work_id"]
+            w["version"] = versions.setdefault(w_id, 1)
+        _DATA_CACHE["works"] = clean_works
+        _DATA_CACHE["works_map"] = {w["work_id"]: w for w in clean_works}
+        _DATA_CACHE["summary"] = sanitize_for_json(summary)
+        _DATA_CACHE["dup_pairs"] = sanitize_for_json(dup_pairs)
+        _DATA_CACHE["cohort_stats"] = sanitize_for_json(cohort_stats)
+
+        # Recompute MP portfolio allocations
+        mps_df = _DATA_CACHE.get("mps_df")
+        if mps_df is not None and not mps_df.empty:
+            mps_list, mps_map = compute_mp_metrics(mps_df, clean_works)
+            _DATA_CACHE["mps_list"] = mps_list
+            _DATA_CACHE["mps_map"] = mps_map
+
+    updated_work = _DATA_CACHE["works_map"].get(pid, server_work)
+    new_score = int(updated_work.get("overall_risk_score", prev_score))
+    new_level = str(updated_work.get("risk_level", prev_level))
+    new_delay = int(updated_work.get("delay_risk", prev_delay))
+
+    # Formulate transparent XAI explanation of the risk score delta
+    score_diff = new_score - prev_score
+    reason_parts = [f"Physical progress updated from {prev_progress:.1f}% to {req.progress:.1f}%."]
+    if score_diff < 0:
+        reason_parts.append(f"Risk Priority Score decreased from {prev_score} to {new_score} (reduced delay/stagnation gap).")
+    elif score_diff > 0:
+        reason_parts.append(f"Risk Priority Score adjusted from {prev_score} to {new_score}.")
+    else:
+        reason_parts.append(f"Risk Priority Score remains stable at {new_score}.")
+
+    if prev_delay != new_delay:
+        reason_parts.append(f"Delay & Stagnation component recalculated from {prev_delay} to {new_delay}.")
+
+    explanation_msg = " ".join(reason_parts)
+
+    response_data = {
+        "success": True,
+        "project_id": pid,
+        "verification_id": ver_id,
+        "operation_id": req.operation_id,
+        "message": "Field verification synchronized successfully",
+        "version": new_version,
+        "risk_update": {
+            "previous_risk_score": prev_score,
+            "current_risk_score": new_score,
+            "previous_risk_level": prev_level,
+            "current_risk_level": new_level,
+            "previous_delay_risk": prev_delay,
+            "current_delay_risk": new_delay,
+            "explanation": explanation_msg
+        },
+        "updated_work": updated_work
+    }
+
+    # Store in processed operations for idempotency
+    processed[req.operation_id] = response_data
+    return response_data
+
+@router.get("/projects/{project_id}/verifications")
+def get_project_verifications(project_id: str):
+    """Returns field verification history recorded for a specific project."""
+    pid = project_id.strip().lower()
+    all_v = _DATA_CACHE.get("field_verifications", [])
+    records = [v for v in all_v if v["project_id"].strip().lower() == pid]
+    return {
+        "project_id": project_id,
+        "total": len(records),
+        "verifications": list(reversed(records))
+    }
+
+@router.get("/projects/offline-bundle")
+def get_offline_project_bundle(
+    district: Optional[str] = None,
+    state: Optional[str] = None,
+    limit: int = 100
+):
+    """
+    Returns a lightweight bundle of projects tailored for offline field caching.
+    Includes only essential verification attributes to conserve mobile client storage.
+    """
+    works = _DATA_CACHE.get("works", [])
+    if state:
+        works = [w for w in works if str(w.get("state", "")).lower() == state.lower()]
+    if district:
+        works = [w for w in works if str(w.get("district", "")).lower() == district.lower()]
+
+    compact_projects = []
+    for w in works[:limit]:
+        compact_projects.append({
+            "work_id": w["work_id"],
+            "work_title": w["work_title"],
+            "work_category": w.get("work_category", ""),
+            "district": w.get("district", ""),
+            "state": w.get("state", ""),
+            "village": w.get("village", ""),
+            "ward": w.get("ward", ""),
+            "latitude": w.get("latitude"),
+            "longitude": w.get("longitude"),
+            "sanctioned_amount": w.get("sanctioned_amount"),
+            "physical_progress": w.get("physical_progress", 0.0),
+            "financial_progress": w.get("financial_progress", 0.0),
+            "overall_risk_score": w.get("overall_risk_score", 0),
+            "risk_level": w.get("risk_level", "LOW"),
+            "primary_risk_factor": w.get("primary_risk_factor", ""),
+            "implementing_agency": w.get("implementing_agency", ""),
+            "status": w.get("status", "IN_PROGRESS"),
+            "last_update_date": w.get("last_update_date", ""),
+            "version": w.get("version", 1),
+            "photo_available": w.get("photo_available", False)
+        })
+
+    return {
+        "total": len(compact_projects),
+        "district": district or "ALL",
+        "state": state or "ALL",
+        "cached_at": datetime.now(timezone.utc).isoformat(),
+        "projects": compact_projects
     }

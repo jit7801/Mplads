@@ -1,5 +1,5 @@
 # Architecture Decision Records & Engineering Log (`decisions.md`)
-## Project: Explainable Risk Intelligence Layer for MPLADS (SIH26102)
+## Project: Explainable Risk Intelligence Layer for MPLADS
 
 This document tracks all foundational, architectural, algorithmic, operational, and UX design decisions made during the conception and implementation of the project.
 
