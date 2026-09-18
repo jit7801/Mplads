@@ -55,3 +55,37 @@ export async function fetchStates() {
   return res.json();
 }
 
+export async function submitFieldVerification(projectId, payload) {
+  const res = await fetch(`${API_BASE_URL}/projects/${encodeURIComponent(projectId)}/verification`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    let errorDetail = `Failed to submit field verification (${res.status})`;
+    try {
+      const errJson = await res.json();
+      errorDetail = errJson.detail?.message || errJson.detail || errorDetail;
+    } catch {
+      // fallback
+    }
+    const err = new Error(errorDetail);
+    err.status = res.status;
+    throw err;
+  }
+  return res.json();
+}
+
+export async function fetchProjectVerifications(projectId) {
+  const res = await fetch(`${API_BASE_URL}/projects/${encodeURIComponent(projectId)}/verifications`);
+  if (!res.ok) throw new Error(`Failed to fetch verifications for ${projectId}`);
+  return res.json();
+}
+
+export async function fetchOfflineProjectBundle(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const res = await fetch(`${API_BASE_URL}/projects/offline-bundle?${query}`);
+  if (!res.ok) throw new Error("Failed to fetch offline project bundle");
+  return res.json();
+}
+

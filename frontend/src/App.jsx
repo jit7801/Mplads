@@ -13,6 +13,7 @@ import RiskMapView from './components/RiskMapView';
 import ReportsView from './components/ReportsView';
 import SettingsModal from './components/SettingsModal';
 import CitizenView from './components/CitizenView';
+import FieldVerificationView from './components/FieldVerificationView';
 import { CardSkeleton, TableSkeleton } from './components/SkeletonLoader';
 import { fetchSummary, fetchWorks, fetchDuplicateCandidates } from './api/client';
 import { AlertCircle, RefreshCw } from 'lucide-react';
@@ -34,6 +35,7 @@ function AppContent() {
 
   // Active Work Dossier Inspection
   const [selectedWorkId, setSelectedWorkId] = useState(null);
+  const [verificationInitialWorkId, setVerificationInitialWorkId] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [initialRiskFilter, setInitialRiskFilter] = useState('');
 
@@ -64,6 +66,9 @@ function AppContent() {
     } else if (hash === 'reports') {
       setCurrentTab('REPORTS');
       setSelectedWorkId(null);
+    } else if (hash === 'field-verification') {
+      setCurrentTab('FIELD_VERIFICATION');
+      setSelectedWorkId(null);
     } else if (hash === 'citizen') {
       setCurrentRole('CITIZEN');
       setSelectedWorkId(null);
@@ -83,6 +88,7 @@ function AppContent() {
     setInitialRiskFilter('');
     const tabToHash = {
       COMMAND_CENTER: 'overview',
+      FIELD_VERIFICATION: 'field-verification',
       WORK_LIST: 'works',
       COST_ANOMALIES: 'cost-anomalies',
       DELAY_STAGNATION: 'delay-stagnation',
@@ -141,6 +147,12 @@ function AppContent() {
 
   useEffect(() => {
     loadData();
+    const handleDataSynced = () => {
+      // Auto-refresh summary metrics and works table when sync completes
+      loadData();
+    };
+    window.addEventListener('mplads:data_synced', handleDataSynced);
+    return () => window.removeEventListener('mplads:data_synced', handleDataSynced);
   }, []);
 
   const handleKPISelect = (kpiId) => {
@@ -293,8 +305,12 @@ function AppContent() {
                 workId={selectedWorkId}
                 onBack={handleBackToWorks}
                 onOpenDuplicateDiff={handleOpenDuplicateDiff}
-                onViewOnMap={(wId) => {
+                onViewOnMap={(_wId) => {
                   navigateTab('MAP');
+                }}
+                onOpenFieldVerification={(wId) => {
+                  setVerificationInitialWorkId(wId);
+                  navigateTab('FIELD_VERIFICATION');
                 }}
               />
             ) : (
@@ -389,6 +405,15 @@ function AppContent() {
                 {currentTab === 'REPORTS' && (
                   <ReportsView
                     works={scopedWorks}
+                    onSelectWork={handleSelectWork}
+                  />
+                )}
+
+                {/* 8. Field Verification Workflow */}
+                {currentTab === 'FIELD_VERIFICATION' && (
+                  <FieldVerificationView
+                    initialWorkId={verificationInitialWorkId}
+                    availableWorks={scopedWorks}
                     onSelectWork={handleSelectWork}
                   />
                 )}

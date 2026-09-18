@@ -1,6 +1,6 @@
 # MPLADS Risk Intelligence Platform
 
-> **Explainable Risk Intelligence & Decision Support Layer for MPLADS Scheme (SIH26102)**  
+> **Explainable Risk Intelligence & Decision Support Layer for MPLADS Scheme**  
 > Empirical anomaly detection, geospatial duplicate indexing, and explainable decision support for Members of Parliament and District Authorities to monitor public development works, track fund utilization, and prioritize cases for human verification.
 
 ---
@@ -130,4 +130,4 @@ python3 -m pytest backend/tests -v
 ---
 
 ## 📄 License & Attribution
-Developed for the **Smart India Hackathon (SIH26102)** problem statement on explainable risk intelligence and decision support for public MPLADS development works.
+Developed for explainable risk intelligence and decision support for public MPLADS development works.

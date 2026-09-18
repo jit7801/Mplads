@@ -10,7 +10,8 @@ import {
   Sliders, 
   ChevronLeft, 
   ChevronRight,
-  X
+  X,
+  ClipboardCheck
 } from 'lucide-react';
 import Logo from './Logo';
 
@@ -25,6 +26,7 @@ export default function Sidebar({
 }) {
   const navItems = [
     { id: 'COMMAND_CENTER', label: 'Overview', icon: LayoutDashboard },
+    { id: 'FIELD_VERIFICATION', label: 'Field Verification', icon: ClipboardCheck },
     { id: 'WORK_LIST', label: 'Risk Works', icon: ListFilter },
     { id: 'COST_ANOMALIES', label: 'Cost Anomalies', icon: Coins },
     { id: 'DELAY_STAGNATION', label: 'Delay & Stagnation', icon: Clock },

@@ -3,6 +3,7 @@ import { Bell, User, HelpCircle, Menu, ChevronDown } from 'lucide-react';
 import NotificationsPanel from './NotificationsPanel';
 import HelpModal from './HelpModal';
 import UserProfileModal from './UserProfileModal';
+import SyncStatusIndicator from './SyncStatusIndicator';
 import { useToast } from './Toast';
 
 export default function Header({ 
@@ -58,6 +59,9 @@ export default function Header({
         {/* Right: Actions & Role */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           
+          {/* Offline Sync Manager Status Indicator */}
+          <SyncStatusIndicator onSelectWork={onSelectWork} />
+
           {/* Role Switcher (MVP Simulation) */}
           <div className="flex items-center gap-1.5" title="MVP Role Simulator (Production requires government SSO authentication)">
             <label htmlFor="role-select" className="text-xs text-[#667085] hidden md:inline font-medium">

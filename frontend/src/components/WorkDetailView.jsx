@@ -15,18 +15,21 @@ import {
   ChevronRight,
   ShieldAlert,
   Send,
-  Check,
-  X,
-  Map
+  Check, 
+  X, 
+  Map,
+  ClipboardCheck
 } from 'lucide-react';
-import { fetchWorkExplanation } from '../api/client';
+import { fetchWorkExplanation, fetchProjectVerifications } from '../api/client';
+import { getLocalVerificationsForProject } from '../services/db';
 import { useToast } from './Toast';
 
 export default function WorkDetailView({ 
   workId, 
   onBack, 
   onOpenDuplicateDiff,
-  onViewOnMap 
+  onViewOnMap,
+  onOpenFieldVerification
 }) {
   const { addToast } = useToast();
   const [dossier, setDossier] = useState(null);
@@ -38,6 +41,7 @@ export default function WorkDetailView({
   const [inspectorNotes, setInspectorNotes] = useState('');
   const [selectedAction, setSelectedAction] = useState('SCHEDULE_INSPECTION');
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
+  const [verifications, setVerifications] = useState([]);
 
   useEffect(() => {
     if (!workId) return;
@@ -50,6 +54,15 @@ export default function WorkDetailView({
       .catch((err) => {
         setError(err.message);
         setLoading(false);
+      });
+
+    // Fetch verification audit history
+    fetchProjectVerifications(workId)
+      .then((data) => setVerifications(data.verifications || []))
+      .catch(() => {
+        getLocalVerificationsForProject(workId)
+          .then((local) => setVerifications(local || []))
+          .catch(() => setVerifications([]));
       });
   }, [workId]);
 
@@ -442,13 +455,87 @@ export default function WorkDetailView({
               </button>
 
               <button
-                onClick={() => setIsActionModalOpen(true)}
-                className="btn-primary text-xs flex items-center gap-1.5"
+                onClick={() => onOpenFieldVerification && onOpenFieldVerification(dossier.work_id)}
+                className="btn-primary text-xs flex items-center gap-1.5 bg-[#027A48] hover:bg-[#05603A]"
               >
-                <ShieldAlert className="w-3.5 h-3.5" />
+                <ClipboardCheck className="w-3.5 h-3.5" />
+                <span>Conduct Field Verification</span>
+              </button>
+
+              <button
+                onClick={() => setIsActionModalOpen(true)}
+                className="btn-secondary text-xs flex items-center gap-1.5"
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-[#667085]" />
                 <span>Record Inspection Determination</span>
               </button>
             </div>
+          </div>
+
+          {/* Field Verification Audit History Section */}
+          <div className="gov-card p-5 space-y-3">
+            <div className="flex items-center justify-between border-b border-[#EAECF0] pb-2">
+              <div className="flex items-center gap-2">
+                <ClipboardCheck className="w-4 h-4 text-[#183B56]" />
+                <h3 className="text-xs font-bold text-[#1F2933] uppercase tracking-wider">
+                  Field Verification History ({verifications.length})
+                </h3>
+              </div>
+              <button
+                onClick={() => onOpenFieldVerification && onOpenFieldVerification(dossier.work_id)}
+                className="text-xs font-semibold text-[#183B56] hover:underline"
+              >
+                + New Spot Inspection
+              </button>
+            </div>
+
+            {verifications.length === 0 ? (
+              <p className="text-xs text-[#667085] py-2">
+                No offline or online spot verification recorded yet. Use the button above to record ground progress.
+              </p>
+            ) : (
+              <div className="space-y-2 pt-1">
+                {verifications.map((v, i) => (
+                  <div
+                    key={v.verification_id || v.operation_id || i}
+                    className="p-3 rounded-lg border border-[#EAECF0] bg-[#F9FAFB] text-xs space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-[#1F2933]">
+                          {new Date(v.verified_at || v.created_at).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
+                        </span>
+                        <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-[#ECFDF3] text-[#027A48]">
+                          Verified: {v.progress}%
+                        </span>
+                      </div>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-[#ECFDF3] text-[#027A48]">
+                        {v.sync_status || 'Synced'}
+                      </span>
+                    </div>
+
+                    <div className="text-[#475467] text-[11px]">
+                      <strong>Status:</strong> {v.verification_status} · <strong>Officer:</strong> {v.user_id}
+                    </div>
+
+                    {v.remarks && (
+                      <p className="text-[11px] text-[#1F2933] italic bg-white p-2 rounded border border-[#EAECF0]">
+                        "{v.remarks}"
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between text-[10px] text-[#98A2B3]">
+                      <span>Location: {v.latitude && v.longitude ? `${v.latitude}, ${v.longitude}` : 'Manual Entry'}</span>
+                      <span>Ref: {v.verification_id || v.operation_id}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </>
       ) : null}

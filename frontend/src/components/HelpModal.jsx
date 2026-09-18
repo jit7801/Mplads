@@ -7,7 +7,7 @@ export default function HelpModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const sections = [
-    { id: 'overview', title: 'System Overview & SIH26102', icon: BookOpen },
+    { id: 'overview', title: 'System Overview', icon: BookOpen },
     { id: 'financial', title: '1. Financial & Cost Anomalies', icon: Scale },
     { id: 'delay', title: '2. Progress Gap & Stagnation', icon: Clock },
     { id: 'duplicates', title: '3. Duplicate & Overlap Detection', icon: Copy },
@@ -81,7 +81,7 @@ export default function HelpModal({ isOpen, onClose }) {
               <div className="space-y-3">
                 <h3 className="text-sm font-bold text-[#1F2933]">Objective & Scope</h3>
                 <p>
-                  The <strong>MPLADS Risk Intelligence Layer (SIH26102)</strong> is a transparent, explainable decision-support engine developed to assist Members of Parliament, District Magistrates, and central monitoring bodies.
+                  The <strong>MPLADS Risk Intelligence Layer</strong> is a transparent, explainable decision-support engine developed to assist Members of Parliament, District Magistrates, and central monitoring bodies.
                 </p>
                 <div className="p-3 bg-[#F2F4F7] rounded-lg border border-[#E4E7EC] space-y-1">
                   <span className="font-semibold text-[#1F2933] block">Unified Risk Scoring (0–100 Scale):</span>

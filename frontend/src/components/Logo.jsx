@@ -45,13 +45,6 @@ export default function Logo({
             }`}>
               MPLADS <span className={isDark ? 'text-amber-400 font-semibold' : 'text-[#183B56] font-semibold'}>Risk Intel</span>
             </span>
-            <span className={`px-1 py-0.2 text-[9px] font-bold rounded border uppercase tracking-wider ${
-              isDark 
-                ? 'bg-amber-400/10 text-amber-300 border-amber-400/30' 
-                : 'bg-blue-50 text-[#183B56] border-[#D0D5DD]'
-            }`}>
-              SIH26102
-            </span>
           </div>
           <p className={`font-normal truncate ${config.sub} ${
             isDark ? 'text-slate-400' : 'text-[#667085]'
