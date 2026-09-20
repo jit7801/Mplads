@@ -40,7 +40,8 @@ def run_full_risk_pipeline(
     w_dup_norm = weight_duplicate / 25.0
     w_cmp_norm = weight_compliance / 15.0
     
-    for _, row in validated_df.iterrows():
+    row_records = validated_df.to_dict(orient="records")
+    for row in row_records:
         w_id = str(row["work_id"]).strip()
         c_eval = cost_res.get(w_id, {"financial_risk_score": 0, "explanation": ""})
         d_eval = delay_res.get(w_id, {"delay_risk_score": 0, "explanation": ""})
@@ -114,7 +115,7 @@ def run_full_risk_pipeline(
 
         # Clean row dictionary for strict JSON compatibility (replacing NaN/inf with None)
         clean_row = {}
-        for k, v in row.to_dict().items():
+        for k, v in row.items():
             if isinstance(v, (int, bool, str)):
                 clean_row[k] = v
             elif isinstance(v, float) and (math.isnan(v) or math.isinf(v)):

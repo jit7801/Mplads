@@ -75,6 +75,20 @@ def compute_cost_anomalies(df: pd.DataFrame) -> Tuple[Dict[str, Dict[str, Any]],
     t1_groups = {k: v for k, v in df_eval.groupby(["work_category", "district"])}
     t2_groups = {k: v for k, v in df_eval.groupby(["work_category", "state"])}
     t3_groups = {k: v for k, v in df_eval.groupby("work_category")}
+
+    t1_arrays = {k: (v.dropna(subset=["sanctioned_amount"])["work_id"].values, v.dropna(subset=["sanctioned_amount"])["sanctioned_amount"].values) for k, v in t1_groups.items()}
+    t2_arrays = {k: (v.dropna(subset=["sanctioned_amount"])["work_id"].values, v.dropna(subset=["sanctioned_amount"])["sanctioned_amount"].values) for k, v in t2_groups.items()}
+    t3_arrays = {k: (v.dropna(subset=["sanctioned_amount"])["work_id"].values, v.dropna(subset=["sanctioned_amount"])["sanctioned_amount"].values) for k, v in t3_groups.items()}
+
+    large_cohort_cache = {}
+    for g_dict in (t1_arrays, t2_arrays, t3_arrays):
+        for k, (_, amounts) in g_dict.items():
+            if len(amounts) >= 30:
+                c_clean = amounts[~np.isnan(amounts)]
+                if len(c_clean) > 0:
+                    c_med = float(np.median(c_clean))
+                    c_mad = float(np.median(np.abs(c_clean - c_med)))
+                    large_cohort_cache[k] = (c_med, c_mad)
     
     def summarize_series(arr: np.ndarray, name: str, cat: str, region: str) -> Dict[str, Any]:
         arr_clean = arr[~np.isnan(arr)]
@@ -131,31 +145,39 @@ def compute_cost_anomalies(df: pd.DataFrame) -> Tuple[Dict[str, Dict[str, Any]],
             
         # 1. Leave-One-Out Multi-tier Cohort Selection
         # Excludes current work so it does not influence its own peer statistics
-        t1_df = t1_groups.get((cat, dist))
-        t1_others = t1_df[t1_df["work_id"] != w_id]["sanctioned_amount"].dropna().values if t1_df is not None else np.array([])
-        
-        t2_df = t2_groups.get((cat, state))
-        t2_others = t2_df[t2_df["work_id"] != w_id]["sanctioned_amount"].dropna().values if t2_df is not None else np.array([])
-        
-        t3_df = t3_groups.get(cat)
-        t3_others = t3_df[t3_df["work_id"] != w_id]["sanctioned_amount"].dropna().values if t3_df is not None else np.array([])
-        
-        if len(t1_others) >= min_peer_size:
+        g1 = t1_arrays.get((cat, dist))
+        g2 = t2_arrays.get((cat, state))
+        g3 = t3_arrays.get(cat)
+
+        t1_len = (len(g1[1]) - (1 if w_id in g1[0] else 0)) if g1 is not None else 0
+        t2_len = (len(g2[1]) - (1 if w_id in g2[0] else 0)) if g2 is not None else 0
+        t3_len = (len(g3[1]) - (1 if w_id in g3[0] else 0)) if g3 is not None else 0
+
+        if t1_len >= min_peer_size:
             cohort_tier = "DISTRICT"
             cohort_name = f"{cat} — {dist}"
-            peer_costs = t1_others
-        elif len(t2_others) >= min_peer_size:
+            active_key = (cat, dist)
+            active_group = g1
+        elif t2_len >= min_peer_size:
             cohort_tier = "STATE_FALLBACK"
             cohort_name = f"{cat} — {state} (State Peer Cohort)"
-            peer_costs = t2_others
-        elif len(t3_others) >= min_peer_size:
+            active_key = (cat, state)
+            active_group = g2
+        elif t3_len >= min_peer_size:
             cohort_tier = "NATIONAL_FALLBACK"
             cohort_name = f"{cat} (National Baseline)"
-            peer_costs = t3_others
+            active_key = cat
+            active_group = g3
         else:
             cohort_tier = "INSUFFICIENT_PEER_DATA"
             cohort_name = f"{cat} (Insufficient Peer Samples < {min_peer_size})"
-            peer_costs = t3_others
+            active_key = None
+            active_group = g3
+            
+        if active_group is not None:
+            peer_costs = active_group[1][active_group[0] != w_id]
+        else:
+            peer_costs = np.array([], dtype=float)
             
         if cohort_name not in cohort_summaries and cohort_tier != "INSUFFICIENT_PEER_DATA":
             cohort_summaries[cohort_name] = summarize_series(peer_costs, cohort_name, cat, dist if cohort_tier == "DISTRICT" else state)
@@ -176,9 +198,13 @@ def compute_cost_anomalies(df: pd.DataFrame) -> Tuple[Dict[str, Dict[str, Any]],
                 f"to establish an empirical distribution."
             )
         else:
-            peer_count = len(peer_costs)
-            peer_median = float(np.median(peer_costs))
-            mad = float(np.median(np.abs(peer_costs - peer_median)))
+            if active_key in large_cohort_cache:
+                peer_count = len(active_group[1]) - 1
+                peer_median, mad = large_cohort_cache[active_key]
+            else:
+                peer_count = len(peer_costs)
+                peer_median = float(np.median(peer_costs)) if peer_count > 0 else 0.0
+                mad = float(np.median(np.abs(peer_costs - peer_median))) if peer_count > 0 else 0.0
             
             # Safe zero-MAD handling via documented relative deviation
             if mad > 0.0:

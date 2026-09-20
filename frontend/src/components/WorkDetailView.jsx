@@ -240,6 +240,53 @@ export default function WorkDetailView({
                     Agency: {dossier.implementing_agency || 'District Rural Development Agency'}
                   </span>
                 </div>
+
+                {(dossier.mp_name || dossier.constituency || dossier.block || dossier.house) && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2.5 mt-1 border-t border-[#F2F4F7] text-xs">
+                    {dossier.mp_name && (
+                      <div>
+                        <span className="text-[#667085] block text-[10px]">MP Name:</span>
+                        <strong className="text-[#1F2933]">{dossier.mp_name}</strong>
+                      </div>
+                    )}
+                    {dossier.constituency && (
+                      <div>
+                        <span className="text-[#667085] block text-[10px]">Constituency:</span>
+                        <strong className="text-[#1F2933]">{dossier.constituency}</strong>
+                      </div>
+                    )}
+                    {dossier.block && (
+                      <div>
+                        <span className="text-[#667085] block text-[10px]">Block:</span>
+                        <strong className="text-[#1F2933]">{dossier.block}</strong>
+                      </div>
+                    )}
+                    {dossier.village && (
+                      <div>
+                        <span className="text-[#667085] block text-[10px]">Village:</span>
+                        <strong className="text-[#1F2933]">{dossier.village}</strong>
+                      </div>
+                    )}
+                    {dossier.sanctioned_amount != null && (
+                      <div>
+                        <span className="text-[#667085] block text-[10px]">Allocation Amount:</span>
+                        <strong className="text-[#1F2933]">₹{Number(dossier.sanctioned_amount).toLocaleString('en-IN')}</strong>
+                      </div>
+                    )}
+                    {dossier.house && (
+                      <div>
+                        <span className="text-[#667085] block text-[10px]">House:</span>
+                        <strong className="text-[#1F2933]">{dossier.house}</strong>
+                      </div>
+                    )}
+                    {dossier.ida_approval && (
+                      <div>
+                        <span className="text-[#667085] block text-[10px]">IDA Approval:</span>
+                        <strong className="text-[#1F2933]">{dossier.ida_approval}</strong>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Risk Badge & Score */}

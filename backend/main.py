@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from app.core.config import settings
 from app.api.v1.router import router as api_router, load_and_run_pipeline
 
@@ -27,6 +28,9 @@ app = FastAPI(
     description="Explainable Risk Intelligence Layer for MPLADS Scheme",
     lifespan=lifespan
 )
+
+# Enable GZip compression for large API responses (improves 60k record payload delivery)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # CORS configuration with configurable whitelist
 app.add_middleware(

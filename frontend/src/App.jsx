@@ -22,7 +22,7 @@ import { ToastProvider, useToast } from './components/Toast';
 function AppContent() {
   const { addToast } = useToast();
   const [currentTab, setCurrentTab] = useState('COMMAND_CENTER');
-  const [currentRole, setCurrentRole] = useState('DISTRICT');
+  const [currentRole, setCurrentRole] = useState('MINISTRY');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -122,7 +122,7 @@ function AppContent() {
     try {
       const [sumData, worksData, dupData] = await Promise.all([
         fetchSummary(),
-        fetchWorks({ limit: 500 }),
+        fetchWorks({ limit: 100000 }),
         fetchDuplicateCandidates()
       ]);
       setSummary(sumData);
@@ -353,7 +353,7 @@ function AppContent() {
 
                     {/* Master Works Registry */}
                     <WorksTableView
-                      works={scopedWorks}
+                      works={works}
                       onSelectWork={handleSelectWork}
                       initialRiskFilter={initialRiskFilter}
                     />
@@ -363,7 +363,7 @@ function AppContent() {
                 {/* 2. Full Risk Works Registry */}
                 {currentTab === 'WORK_LIST' && (
                   <WorksTableView
-                    works={scopedWorks}
+                    works={works}
                     onSelectWork={handleSelectWork}
                     initialRiskFilter={initialRiskFilter}
                   />

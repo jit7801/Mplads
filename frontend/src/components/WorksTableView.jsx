@@ -30,7 +30,7 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
   const [sortBy, setSortBy] = useState('overall_risk_score');
   const [sortOrder, setSortOrder] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 12;
+  const [pageSize, setPageSize] = useState(15);
 
   useEffect(() => {
     if (initialRiskFilter) {
@@ -39,6 +39,9 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
   }, [initialRiskFilter]);
 
   // Extract unique filter options
+  const states = useMemo(() => {
+    return Array.from(new Set(works.map((w) => w.state))).filter(Boolean).sort();
+  }, [works]);
   const districts = useMemo(() => {
     const list = selectedState ? works.filter((w) => w.state === selectedState) : works;
     return Array.from(new Set(list.map((w) => w.district))).filter(Boolean).sort();
@@ -68,6 +71,11 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
         (w.work_title && w.work_title.toLowerCase().includes(search.toLowerCase())) ||
         (w.work_id && w.work_id.toLowerCase().includes(search.toLowerCase())) ||
         (w.district && w.district.toLowerCase().includes(search.toLowerCase())) ||
+        (w.state && w.state.toLowerCase().includes(search.toLowerCase())) ||
+        (w.mp_name && w.mp_name.toLowerCase().includes(search.toLowerCase())) ||
+        (w.constituency && w.constituency.toLowerCase().includes(search.toLowerCase())) ||
+        (w.village && w.village.toLowerCase().includes(search.toLowerCase())) ||
+        (w.block && w.block.toLowerCase().includes(search.toLowerCase())) ||
         (w.implementing_agency && w.implementing_agency.toLowerCase().includes(search.toLowerCase()));
 
       const matchState = !selectedState || w.state === selectedState;
@@ -150,7 +158,7 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
             Risk Works Registry
           </h2>
           <p className="text-xs text-[#667085]">
-            Browse, filter, and inspect all {works.length} monitored infrastructure projects.
+            Browse, filter, and inspect all {works.length.toLocaleString()} monitored infrastructure projects.
           </p>
         </div>
 
@@ -193,14 +201,14 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
       <div className="gov-card p-3 sm:p-4 space-y-3">
 
         {/* Search & Main Selectors */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2.5">
 
           {/* Search Input */}
           <div className="lg:col-span-2 relative">
             <Search className="w-3.5 h-3.5 text-[#98A2B3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search title, ID, district, agency..."
+              placeholder="Search title, ID, MP, district, village..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -217,6 +225,43 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
+          </div>
+
+          {/* State Filter */}
+          <div>
+            <select
+              value={selectedState}
+              onChange={(e) => {
+                setSelectedState(e.target.value);
+                setSelectedDistrict('');
+                setCurrentPage(1);
+              }}
+              className="w-full bg-[#F9FAFB] text-xs text-[#1F2933] px-2.5 py-2 rounded-md border border-[#D0D5DD] focus:outline-none focus:border-[#183B56] cursor-pointer"
+              aria-label="Filter by state"
+            >
+              <option value="">All States ({states.length})</option>
+              {states.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* District Filter */}
+          <div>
+            <select
+              value={selectedDistrict}
+              onChange={(e) => {
+                setSelectedDistrict(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full bg-[#F9FAFB] text-xs text-[#1F2933] px-2.5 py-2 rounded-md border border-[#D0D5DD] focus:outline-none focus:border-[#183B56] cursor-pointer"
+              aria-label="Filter by district"
+            >
+              <option value="">All Districts ({districts.length})</option>
+              {districts.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
           </div>
 
           {/* Risk Level Filter */}
@@ -254,23 +299,6 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
             </select>
           </div>
 
-          {/* District Filter */}
-          <div>
-            <select
-              value={selectedDistrict}
-              onChange={(e) => {
-                setSelectedDistrict(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full bg-[#F9FAFB] text-xs text-[#1F2933] px-2.5 py-2 rounded-md border border-[#D0D5DD] focus:outline-none focus:border-[#183B56] cursor-pointer"
-            >
-              <option value="">All Districts</option>
-              {districts.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-          </div>
-
           {/* Status Filter */}
           <div>
             <select
@@ -295,8 +323,8 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
         {/* Results Count & Clear Button */}
         <div className="flex items-center justify-between pt-2 border-t border-[#EAECF0] text-xs text-[#667085]">
           <div>
-            Showing <strong className="text-[#1F2933]">{filteredWorks.length}</strong> matching projects
-            {hasActiveFilters && ' (filtered)'}
+            Showing <strong className="text-[#1F2933]">{filteredWorks.length.toLocaleString()}</strong> matching projects
+            {hasActiveFilters ? ` (filtered from ${works.length.toLocaleString()} total)` : ''}
           </div>
 
           {hasActiveFilters && (
@@ -331,7 +359,9 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
               >
                 <div>
                   <div className="flex items-center justify-between gap-1 mb-2">
-                    <span className="font-mono text-[10px] text-[#667085] truncate">{work.work_id}</span>
+                    <span className="font-mono text-[10px] text-[#667085] truncate">
+                      {work.work_id}
+                    </span>
                     <RiskBadge score={work.overall_risk_score} level={work.risk_level} size="sm" />
                   </div>
 
@@ -514,9 +544,27 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
       {/* Pagination Controls */}
       {totalPages > 1 && (
         <div className="gov-card p-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          <span className="text-[#667085]">
-            Page <strong className="text-[#1F2933]">{currentPage}</strong> of <strong className="text-[#1F2933]">{totalPages}</strong>
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[#667085]">
+              Page <strong className="text-[#1F2933]">{currentPage}</strong> of <strong className="text-[#1F2933]">{totalPages.toLocaleString()}</strong> ({filteredWorks.length.toLocaleString()} items)
+            </span>
+            <div className="flex items-center gap-1.5 text-[#667085]">
+              <span>Show:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-[#F9FAFB] border border-[#D0D5DD] rounded px-1.5 py-0.5 text-xs text-[#1F2933] cursor-pointer"
+              >
+                <option value={15}>15</option>
+                <option value={30}>30</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
 
           <div className="flex items-center gap-1">
             <button

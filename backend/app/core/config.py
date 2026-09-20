@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 def resolve_data_path() -> str:
     env_path = os.getenv("MPLADS_DATA_PATH")
@@ -35,6 +35,35 @@ def resolve_mp_data_path() -> str:
             return str(candidate)
     return "data/mp_allocations.csv"
 
+def resolve_csv_data_path() -> Optional[str]:
+    env_path = os.getenv("MPLADS_CSV_PATH")
+    if env_path and os.path.exists(env_path):
+        return env_path
+    current_dir = Path(__file__).resolve().parent
+    candidates = [
+        current_dir.parent.parent / "data" / "MPLADS.csv",
+        current_dir.parent.parent.parent / "data" / "MPLADS.csv",
+        Path("data/MPLADS.csv").resolve(),
+        Path("../data/MPLADS.csv").resolve(),
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+    return None
+
+def resolve_max_csv_records() -> Optional[int]:
+    env_max = os.getenv("MPLADS_MAX_RECORDS")
+    if env_max:
+        env_max = env_max.strip().lower()
+        if env_max in ("all", "0", "none", "false"):
+            return None
+        try:
+            val = int(env_max)
+            return val if val > 0 else None
+        except ValueError:
+            return None
+    return None
+
 def resolve_evaluation_date() -> str:
     """
     Centralized evaluation date resolution.
@@ -67,6 +96,8 @@ class Settings:
     
     # Base Data Paths
     DATA_PATH: str = resolve_data_path()
+    CSV_DATA_PATH: Optional[str] = resolve_csv_data_path()
+    MAX_CSV_RECORDS: Optional[int] = resolve_max_csv_records()
     MP_DATA_PATH: str = resolve_mp_data_path()
     
     # Centralized Evaluation Date

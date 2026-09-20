@@ -95,3 +95,44 @@ def test_recalculate_request_validation():
             weight_compliance=25.0
         )
     assert "Total risk weights must sum to exactly 100" in str(excinfo.value)
+
+def test_mplads_csv_integration():
+    # 1. Query works and verify combined dataset
+    res = get_works(limit=2500, offset=0)
+    items = res["items"]
+    assert res["total"] > 520
+    
+    # 2. Existing benchmark records are still returned
+    existing_items = [w for w in items if w.get("source") == "existing" or w["work_id"] == "MPLAD-RJ-2024-0042"]
+    assert len(existing_items) > 0
+    assert any(w["work_id"] == "MPLAD-RJ-2024-0042" for w in existing_items)
+    
+    # 3. CSV records are returned
+    csv_items = [w for w in items if w.get("source") == "MPLADS.csv"]
+    assert len(csv_items) > 0
+    
+    # 4. Check specific CSV row (Manoj Rajoria - Nadauli village) via search
+    nadauli_res = get_works(search="Nadauli")
+    assert nadauli_res["total"] >= 1
+    target_work = nadauli_res["items"][0]
+    assert target_work["source"] == "MPLADS.csv"
+    assert "Manoj Rajoria" in target_work["mp_name"]
+    assert target_work["state"] == "Rajasthan"
+    assert target_work["constituency"] == "KARAULI-DHOLPUR(SC)"
+    assert target_work["block"] == "Rajakhera"
+    assert target_work["village"] == "Nadauli"
+    assert target_work["sanctioned_amount"] == 100000.0
+    assert target_work["status"] == "UNSANCTIONED"
+    
+    # 5. Work explanation for CSV work preserves API schema and metadata
+    exp = get_work_explanation(target_work["work_id"])
+    assert exp["work_id"] == target_work["work_id"]
+    assert exp["source"] == "MPLADS.csv"
+    assert exp["mp_name"] == "Manoj Rajoria"
+    assert "overall_risk_score" in exp
+    assert "component_breakdown" in exp
+    
+    # 6. Verify duplicate source records are preserved (e.g. repeated street lights in Darbhanga)
+    darbhanga_res = get_works(search="Street lights", constituency="DARBHANGA")
+    assert darbhanga_res["total"] >= 2
+

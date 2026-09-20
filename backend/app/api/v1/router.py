@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, model_validator
 import pandas as pd
 from app.core.config import settings
 from app.engines.risk_engine import run_full_risk_pipeline
+from app.adapters.csv_adapter import load_mplads_csv_as_dataframe
 
 logger = logging.getLogger("mplads.api")
 router = APIRouter()
@@ -129,7 +130,7 @@ def compute_mp_metrics(mps_df: pd.DataFrame, works: list[dict]) -> tuple[list[di
 
 def load_and_run_pipeline():
     logger.info("Loading MPLADS analytical pipeline...")
-    # Multi-candidate path search for works dataset
+    # Multi-candidate path search for benchmark works dataset
     df = None
     works_candidates = [
         settings.DATA_PATH,
@@ -141,11 +142,40 @@ def load_and_run_pipeline():
         if c and os.path.exists(c):
             try:
                 df = pd.read_csv(c)
+                if not df.empty:
+                    if "source" not in df.columns:
+                        df["source"] = "existing"
+                    if "data_source" not in df.columns:
+                        df["data_source"] = "SYNTHETIC_SIMULATED"
                 break
             except Exception:
                 continue
-                
-    if df is None:
+
+    # Multi-candidate path search and adaptation for MPLADS.csv
+    csv_candidates = [
+        getattr(settings, "CSV_DATA_PATH", None),
+        "data/MPLADS.csv",
+        "../data/MPLADS.csv",
+        "../../data/MPLADS.csv"
+    ]
+    csv_df = None
+    for c in csv_candidates:
+        if c and os.path.exists(c):
+            try:
+                max_rec = getattr(settings, "MAX_CSV_RECORDS", None)
+                csv_df = load_mplads_csv_as_dataframe(c, max_records=max_rec)
+                break
+            except Exception as e:
+                logger.warning(f"Could not load MPLADS.csv from {c}: {e}")
+                continue
+
+    if csv_df is not None and not csv_df.empty:
+        if df is not None and not df.empty:
+            logger.info(f"Combining {len(df)} benchmark records with {len(csv_df)} MPLADS.csv records.")
+            df = pd.concat([df, csv_df], ignore_index=True)
+        else:
+            df = csv_df
+    elif df is None:
         logger.error("Could not find works dataset in any standard candidate paths. Initializing empty.")
         df = pd.DataFrame()
         
@@ -156,6 +186,10 @@ def load_and_run_pipeline():
     for w in clean_works:
         w_id = w["work_id"]
         w["version"] = versions.setdefault(w_id, 1)
+        if not w.get("source"):
+            w["source"] = "MPLADS.csv" if "MPLADS-CSV" in str(w_id) else "existing"
+        if not w.get("data_source"):
+            w["data_source"] = "MPLADS.csv" if "MPLADS-CSV" in str(w_id) else "SYNTHETIC_SIMULATED"
     _DATA_CACHE["works"] = clean_works
     _DATA_CACHE["works_map"] = {w["work_id"]: w for w in clean_works}
     _DATA_CACHE["summary"] = sanitize_for_json(summary)
@@ -259,7 +293,7 @@ def get_works(
     risk_level: Optional[str] = None,
     min_score: Optional[int] = None,
     search: Optional[str] = None,
-    limit: int = 50,
+    limit: Optional[int] = 50,
     offset: int = 0
 ):
     """Returns filtered and paginated list of works ordered by risk priority score."""
@@ -283,20 +317,28 @@ def get_works(
         s_lower = search.lower()
         items = [
             w for w in items 
-            if s_lower in w["work_title"].lower() 
-            or s_lower in w["work_id"].lower() 
-            or s_lower in w["district"].lower()
-            or s_lower in w.get("constituency", "").lower()
-            or s_lower in w.get("mp_name", "").lower()
-            or s_lower in w.get("implementing_agency", "").lower()
-            or s_lower in w.get("vendor", "").lower()
+            if s_lower in str(w.get("work_title") or "").lower() 
+            or s_lower in str(w.get("work_id") or "").lower() 
+            or s_lower in str(w.get("district") or "").lower()
+            or s_lower in str(w.get("state") or "").lower()
+            or s_lower in str(w.get("constituency") or "").lower()
+            or s_lower in str(w.get("mp_name") or "").lower()
+            or s_lower in str(w.get("implementing_agency") or "").lower()
+            or s_lower in str(w.get("vendor") or "").lower()
+            or s_lower in str(w.get("village") or "").lower()
+            or s_lower in str(w.get("block") or "").lower()
         ]
         
     total = len(items)
-    paginated = items[offset : offset + limit]
+    if limit is not None and limit > 0:
+        paginated = items[offset : offset + limit]
+        ret_limit = limit
+    else:
+        paginated = items[offset:]
+        ret_limit = total
     return {
         "total": total,
-        "limit": limit,
+        "limit": ret_limit,
         "offset": offset,
         "items": paginated
     }
@@ -355,6 +397,19 @@ def get_work_explanation(work_id: str):
         "compliance_evaluation": work.get("compliance_evaluation", {}),
         "duplicate_match": dup_match,
         "data_quality_warnings": work.get("data_quality_warnings", []),
+        "mp_name": work.get("mp_name"),
+        "constituency": work.get("constituency"),
+        "block": work.get("block"),
+        "village": work.get("village"),
+        "ward": work.get("ward"),
+        "city": work.get("city"),
+        "house": work.get("house"),
+        "ida_approval": work.get("ida_approval"),
+        "implementing_agency": work.get("implementing_agency"),
+        "status": work.get("status"),
+        "sanctioned_amount": work.get("sanctioned_amount"),
+        "recommendation_date": work.get("recommendation_date"),
+        "source": work.get("source", work.get("data_source", "existing")),
         "data_source": work.get("data_source", settings.DATA_SOURCE_LABEL),
         "evaluation_date": settings.EVALUATION_DATE
     }
