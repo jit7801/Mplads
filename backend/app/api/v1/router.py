@@ -524,9 +524,11 @@ def get_work_explanation(work_id: str):
 @router.get("/anomalies/duplicates")
 def get_duplicate_candidates():
     """Returns spatial and semantic overlapping asset pairs for auditor inspection."""
+    pairs = _DATA_CACHE.get("dup_pairs", [])
     return {
-        "total_pairs": len(_DATA_CACHE["dup_pairs"]),
-        "duplicate_pairs": _DATA_CACHE["dup_pairs"]
+        "total_pairs": len(pairs),
+        "duplicate_pairs": pairs,
+        "pairs": pairs
     }
 
 @router.get("/map/layers")

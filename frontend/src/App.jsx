@@ -127,7 +127,7 @@ function AppContent() {
       ]);
       setSummary(sumData);
       setWorks(worksData.items || []);
-      setDuplicatePairs(dupData.pairs || []);
+      setDuplicatePairs(dupData.duplicate_pairs || dupData.pairs || []);
       setError(null);
       setLoading(false);
     } catch (err) {
@@ -189,18 +189,20 @@ function AppContent() {
   const scopedDuplicatePairs = useMemo(() => {
     if (!duplicatePairs || duplicatePairs.length === 0) return [];
     if (currentRole === 'DISTRICT' || currentRole === 'MP') {
-      return duplicatePairs.filter(
+      const filtered = duplicatePairs.filter(
         (p) =>
           (p.work_a?.district || '').toLowerCase() === 'jaipur' ||
           (p.work_b?.district || '').toLowerCase() === 'jaipur'
       );
+      return filtered.length > 0 ? filtered : duplicatePairs;
     }
     if (currentRole === 'STATE') {
-      return duplicatePairs.filter(
+      const filtered = duplicatePairs.filter(
         (p) =>
           (p.work_a?.state || '').toLowerCase() === 'rajasthan' ||
           (p.work_b?.state || '').toLowerCase() === 'rajasthan'
       );
+      return filtered.length > 0 ? filtered : duplicatePairs;
     }
     return duplicatePairs;
   }, [duplicatePairs, currentRole]);

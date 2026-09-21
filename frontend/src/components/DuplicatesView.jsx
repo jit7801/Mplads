@@ -42,6 +42,18 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
   }
 
   const activePair = pairs[selectedPairIndex] || pairs[0];
+  if (!activePair || !activePair.work_a || !activePair.work_b) {
+    return (
+      <div className="gov-card p-12 text-center text-[#667085]">
+        <Copy className="w-8 h-8 text-[#D0D5DD] mx-auto mb-2" />
+        <div className="font-semibold text-sm text-[#1F2933]">No duplicate candidates detected</div>
+        <p className="text-xs text-[#667085] mt-1 max-w-sm mx-auto">
+          All projects evaluated within 150m spatial bubbles currently show distinct titles and independent physical assets.
+        </p>
+      </div>
+    );
+  }
+
   const { 
     work_a, 
     work_b, 
@@ -53,8 +65,12 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
     pair_id
   } = activePair;
 
-  const centerLat = (work_a.latitude + work_b.latitude) / 2;
-  const centerLon = (work_a.longitude + work_b.longitude) / 2;
+  const latA = Number(work_a?.latitude) || 26.9124;
+  const lonA = Number(work_a?.longitude) || 75.7873;
+  const latB = Number(work_b?.latitude) || latA;
+  const lonB = Number(work_b?.longitude) || lonA;
+  const centerLat = (latA + latB) / 2;
+  const centerLon = (lonA + lonB) / 2;
 
   const currentStatus = resolutionStatus[pair_id] || activePair.verification_status || 'PENDING_VERIFICATION';
 
@@ -266,6 +282,7 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
         {/* Synchronized Spatial Map */}
         <div className="h-56 sm:h-64 rounded-lg overflow-hidden border border-[#E4E7EC] relative z-0">
           <MapContainer
+            key={pair_id || selectedPairIndex}
             center={[centerLat, centerLon]}
             zoom={18}
             scrollWheelZoom={false}
@@ -275,7 +292,7 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Marker position={[work_a.latitude, work_a.longitude]}>
+            <Marker position={[latA, lonA]}>
               <Popup>
                 <div className="text-xs">
                   <strong>Work A: {work_a.work_id}</strong><br />
@@ -283,7 +300,7 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
                 </div>
               </Popup>
             </Marker>
-            <Marker position={[work_b.latitude, work_b.longitude]}>
+            <Marker position={[latB, lonB]}>
               <Popup>
                 <div className="text-xs">
                   <strong>Work B: {work_b.work_id}</strong><br />
@@ -293,8 +310,8 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
             </Marker>
             <Polyline
               positions={[
-                [work_a.latitude, work_a.longitude],
-                [work_b.latitude, work_b.longitude]
+                [latA, lonA],
+                [latB, lonB]
               ]}
               color="#B85C5C"
               dashArray="4, 6"
