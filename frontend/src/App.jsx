@@ -122,7 +122,7 @@ function AppContent() {
     try {
       const [sumData, worksData, dupData] = await Promise.all([
         fetchSummary(),
-        fetchWorks({ limit: 100000 }),
+        fetchWorks({ limit: 50 }),
         fetchDuplicateCandidates()
       ]);
       setSummary(sumData);
@@ -206,6 +206,7 @@ function AppContent() {
   }, [duplicatePairs, currentRole]);
 
   const scopedSummary = useMemo(() => {
+    if (currentRole === 'MINISTRY') return summary;
     if (!scopedWorks || scopedWorks.length === 0) return summary;
     
     // Dynamically calculate accurate summary KPIs for the role scope
@@ -234,7 +235,7 @@ function AppContent() {
       duplicate_candidates_count,
       missing_docs_count
     };
-  }, [scopedWorks, scopedDuplicatePairs, summary]);
+  }, [currentRole, scopedWorks, scopedDuplicatePairs, summary]);
 
   return (
     <div className="flex h-screen bg-[#F7F8F6] text-[#1F2933] overflow-hidden">
@@ -319,8 +320,8 @@ function AppContent() {
                 {/* Role Context & Mission Banner */}
                 <RoleContextBanner
                   currentRole={currentRole}
-                  scopedCount={scopedWorks.length}
-                  totalCount={works.length}
+                  scopedCount={currentRole === 'MINISTRY' ? (summary?.total_works || works.length) : scopedWorks.length}
+                  totalCount={summary?.total_works || works.length}
                   onOpenSettings={() => setIsSettingsOpen(true)}
                   onNavigateTab={navigateTab}
                 />
@@ -356,6 +357,7 @@ function AppContent() {
                       works={works}
                       onSelectWork={handleSelectWork}
                       initialRiskFilter={initialRiskFilter}
+                      totalAll={summary?.total_works || 60880}
                     />
                   </div>
                 )}
@@ -366,6 +368,7 @@ function AppContent() {
                     works={works}
                     onSelectWork={handleSelectWork}
                     initialRiskFilter={initialRiskFilter}
+                    totalAll={summary?.total_works || 60880}
                   />
                 )}
 

@@ -89,3 +89,16 @@ export async function fetchOfflineProjectBundle(params = {}) {
   return res.json();
 }
 
+export async function fetchFilterOptions() {
+  const res = await fetch(`${API_BASE_URL}/filters`);
+  if (!res.ok) throw new Error("Failed to fetch filter options");
+  return res.json();
+}
+
+export async function fetchMapLayers(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const res = await fetch(`${API_BASE_URL}/map/layers?${query}`);
+  if (!res.ok) throw new Error("Failed to fetch map layers");
+  return res.json();
+}
+

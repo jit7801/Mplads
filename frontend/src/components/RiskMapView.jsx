@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import RiskBadge from './RiskBadge';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import { MapPin, Filter, Eye, ChevronRight, RotateCcw, Building2, AlertTriangle, Layers } from 'lucide-react';
 import { useToast } from './Toast';
+import { fetchWorks } from '../api/client';
 
 export default function RiskMapView({ works = [], onSelectWork }) {
   const { addToast } = useToast();
@@ -12,7 +13,29 @@ export default function RiskMapView({ works = [], onSelectWork }) {
   const [activeWork, setActiveWork] = useState(null);
   const [mapCenterKey, setMapCenterKey] = useState(0);
 
-  const validWorks = useMemo(() => works.filter((w) => w.latitude && w.longitude), [works]);
+  const [geoWorks, setGeoWorks] = useState([]);
+
+  useEffect(() => {
+    const passedGeos = works.filter((w) => w.latitude && w.longitude);
+    if (passedGeos.length >= 100) {
+      setGeoWorks(passedGeos);
+    } else {
+      fetchWorks({ has_coords: true, limit: 1000 })
+        .then(res => {
+          if (res.items && res.items.length > 0) {
+            setGeoWorks(res.items);
+          } else {
+            setGeoWorks(passedGeos);
+          }
+        })
+        .catch(err => {
+          console.warn('Map geoWorks fetch fallback:', err);
+          setGeoWorks(passedGeos);
+        });
+    }
+  }, [works]);
+
+  const validWorks = geoWorks;
   const districts = useMemo(() => Array.from(new Set(validWorks.map((w) => w.district))).filter(Boolean).sort(), [validWorks]);
   const categories = useMemo(() => Array.from(new Set(validWorks.map((w) => w.work_category))).filter(Boolean).sort(), [validWorks]);
 

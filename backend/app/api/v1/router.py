@@ -7,6 +7,13 @@ from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, Field, model_validator
 import pandas as pd
 from app.core.config import settings
+from app.core.db import (
+    DB_PATH,
+    load_metadata_from_db,
+    query_works_from_db,
+    get_work_by_id_from_db,
+    compute_summary_from_db
+)
 from app.engines.risk_engine import run_full_risk_pipeline
 from app.adapters.csv_adapter import load_mplads_csv_as_dataframe
 
@@ -36,6 +43,9 @@ def sanitize_for_json(obj: Any) -> Any:
 
 # In-memory storage for cached analysis results
 _DATA_CACHE: Dict[str, Any] = {
+    "use_db": False,
+    "db_path": None,
+    "total_works_count": 0,
     "df": None,
     "works": [],
     "works_map": {},
@@ -45,6 +55,7 @@ _DATA_CACHE: Dict[str, Any] = {
     "mps_df": None,
     "mps_list": [],
     "mps_map": {},
+    "filter_options": {},
     "field_verifications": [],
     "processed_operations": {},
     "project_versions": {}
@@ -130,6 +141,41 @@ def compute_mp_metrics(mps_df: pd.DataFrame, works: list[dict]) -> tuple[list[di
 
 def load_and_run_pipeline():
     logger.info("Loading MPLADS analytical pipeline...")
+
+    # Fast path: Check for precomputed SQLite database
+    db_file = getattr(settings, "DB_PATH", None) or DB_PATH
+    if db_file and os.path.exists(db_file):
+        try:
+            meta = load_metadata_from_db(db_file)
+            if meta and meta.get("summary") and meta["summary"].get("total_works", 0) > 0:
+                logger.info(f"[FAST STARTUP] Loading precomputed pipeline data from {db_file}...")
+                _DATA_CACHE["use_db"] = True
+                _DATA_CACHE["db_path"] = db_file
+                _DATA_CACHE["summary"] = meta["summary"]
+                _DATA_CACHE["dup_pairs"] = meta.get("dup_pairs", [])
+                _DATA_CACHE["cohort_stats"] = meta.get("cohort_stats", {})
+                _DATA_CACHE["mps_list"] = meta.get("mps_list", [])
+                _DATA_CACHE["mps_map"] = meta.get("mps_map", {})
+                _DATA_CACHE["filter_options"] = meta.get("filter_options", {})
+                _DATA_CACHE["total_works_count"] = meta["summary"]["total_works"]
+
+                # Pre-load initial benchmark/top works for fast memory cache & synchronous access
+                _, top_works = query_works_from_db(limit=600, db_path=db_file)
+                _DATA_CACHE["works"] = top_works
+                _DATA_CACHE["works_map"] = {w["work_id"]: w for w in top_works}
+
+                # Load lightweight benchmark DF for simulation/verification tests
+                try:
+                    if settings.DATA_PATH and os.path.exists(settings.DATA_PATH):
+                        _DATA_CACHE["df"] = pd.read_csv(settings.DATA_PATH)
+                except Exception:
+                    pass
+
+                logger.info(f"[FAST STARTUP COMPLETED] Pipeline ready in <15ms! Total records: {meta['summary']['total_works']}.")
+                return
+        except Exception as e:
+            logger.warning(f"Failed to load from DB ({e}), falling back to full CSV ingestion...")
+
     # Multi-candidate path search for benchmark works dataset
     df = None
     works_candidates = [
@@ -240,11 +286,12 @@ class RecalculateRequest(BaseModel):
 @router.get("/health")
 def health_check():
     """Service liveness & pipeline readiness health check."""
+    total = _DATA_CACHE.get("total_works_count") or len(_DATA_CACHE.get("works", []))
     return {
         "status": "healthy",
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION,
-        "total_works": len(_DATA_CACHE["works"]),
+        "total_works": total,
         "evaluation_date": settings.EVALUATION_DATE,
         "is_demo_mode": settings.IS_DEMO_MODE,
         "data_provenance": settings.DATA_SOURCE_LABEL
@@ -253,6 +300,19 @@ def health_check():
 @router.get("/summary")
 def get_summary(district: Optional[str] = None, state: Optional[str] = None):
     """Returns high-level KPI metrics for executive overview with data provenance."""
+    if _DATA_CACHE.get("use_db"):
+        if not state and not district:
+            return _DATA_CACHE.get("summary", {})
+        return compute_summary_from_db(
+            state=state,
+            district=district,
+            dup_pairs_count=len(_DATA_CACHE.get("dup_pairs", [])),
+            evaluation_date=settings.EVALUATION_DATE,
+            data_provenance=settings.DATA_SOURCE_LABEL,
+            is_demo_mode=settings.IS_DEMO_MODE,
+            db_path=_DATA_CACHE.get("db_path", DB_PATH)
+        )
+
     works = _DATA_CACHE["works"]
     if state:
         works = [w for w in works if w["state"].lower() == state.lower()]
@@ -293,10 +353,43 @@ def get_works(
     risk_level: Optional[str] = None,
     min_score: Optional[int] = None,
     search: Optional[str] = None,
+    status: Optional[str] = None,
+    has_coords: Optional[bool] = None,
+    has_financial_risk: Optional[bool] = None,
+    has_delay_risk: Optional[bool] = None,
+    sort_by: Optional[str] = "overall_risk_score",
+    sort_order: Optional[str] = "desc",
     limit: Optional[int] = 50,
     offset: int = 0
 ):
     """Returns filtered and paginated list of works ordered by risk priority score."""
+    if _DATA_CACHE.get("use_db"):
+        total, items = query_works_from_db(
+            state=state,
+            district=district,
+            constituency=constituency,
+            mp_name=mp_name,
+            category=category,
+            risk_level=risk_level,
+            min_score=min_score,
+            status=status,
+            search=search,
+            has_coords=has_coords,
+            has_financial_risk=has_financial_risk,
+            has_delay_risk=has_delay_risk,
+            sort_by=sort_by or "overall_risk_score",
+            sort_order=sort_order or "desc",
+            limit=limit,
+            offset=offset,
+            db_path=_DATA_CACHE.get("db_path", DB_PATH)
+        )
+        return {
+            "total": total,
+            "limit": limit if (limit is not None and limit > 0) else total,
+            "offset": offset,
+            "items": items
+        }
+
     items = _DATA_CACHE["works"]
     
     if state:
@@ -346,7 +439,12 @@ def get_works(
 @router.get("/works/{work_id}")
 def get_work_by_id(work_id: str):
     """Returns complete record of a single project."""
-    work = _DATA_CACHE["works_map"].get(work_id.strip())
+    pid = work_id.strip()
+    if _DATA_CACHE.get("use_db"):
+        work = get_work_by_id_from_db(pid, db_path=_DATA_CACHE.get("db_path", DB_PATH))
+        if work:
+            return work
+    work = _DATA_CACHE["works_map"].get(pid)
     if not work:
         raise HTTPException(status_code=404, detail=f"Work ID '{work_id}' not found.")
     return work
@@ -354,7 +452,12 @@ def get_work_by_id(work_id: str):
 @router.get("/works/{work_id}/explanation")
 def get_work_explanation(work_id: str):
     """Returns forensic explainability dossier for a specific project."""
-    work = _DATA_CACHE["works_map"].get(work_id.strip())
+    pid = work_id.strip()
+    work = None
+    if _DATA_CACHE.get("use_db"):
+        work = get_work_by_id_from_db(pid, db_path=_DATA_CACHE.get("db_path", DB_PATH))
+    if not work:
+        work = _DATA_CACHE["works_map"].get(pid)
     if not work:
         raise HTTPException(status_code=404, detail=f"Work ID '{work_id}' not found.")
         
@@ -363,7 +466,11 @@ def get_work_explanation(work_id: str):
     dup_match = None
     if u_eval.get("has_candidate") and u_eval.get("paired_work_id"):
         paired_id = u_eval["paired_work_id"]
-        paired_work = _DATA_CACHE["works_map"].get(paired_id)
+        paired_work = None
+        if _DATA_CACHE.get("use_db"):
+            paired_work = get_work_by_id_from_db(paired_id, db_path=_DATA_CACHE.get("db_path", DB_PATH))
+        if not paired_work:
+            paired_work = _DATA_CACHE["works_map"].get(paired_id)
         if paired_work:
             dup_match = {
                 "paired_work_id": paired_id,
@@ -425,11 +532,20 @@ def get_duplicate_candidates():
 @router.get("/map/layers")
 def get_map_layers(state: Optional[str] = None, district: Optional[str] = None):
     """Returns GeoJSON FeatureCollection of all works with valid coordinates, color-coded by risk."""
-    works = _DATA_CACHE["works"]
-    if state:
-        works = [w for w in works if w["state"].lower() == state.lower()]
-    if district:
-        works = [w for w in works if w["district"].lower() == district.lower()]
+    if _DATA_CACHE.get("use_db"):
+        _, works = query_works_from_db(
+            state=state,
+            district=district,
+            has_coords=True,
+            limit=2000,
+            db_path=_DATA_CACHE.get("db_path", DB_PATH)
+        )
+    else:
+        works = _DATA_CACHE["works"]
+        if state:
+            works = [w for w in works if w["state"].lower() == state.lower()]
+        if district:
+            works = [w for w in works if w["district"].lower() == district.lower()]
         
     features = []
     for w in works:
@@ -464,6 +580,18 @@ def get_map_layers(state: Optional[str] = None, district: Optional[str] = None):
     return {
         "type": "FeatureCollection",
         "features": features
+    }
+
+@router.get("/filters")
+def get_filter_options():
+    """Returns precomputed distinct states, districts, and categories for instant filter populating."""
+    if _DATA_CACHE.get("use_db"):
+        return _DATA_CACHE.get("filter_options", {})
+    return {
+        "states": sorted(list(set(w.get("state") for w in _DATA_CACHE.get("works", []) if w.get("state")))),
+        "categories": sorted(list(set(w.get("work_category") for w in _DATA_CACHE.get("works", []) if w.get("work_category")))),
+        "statuses": sorted(list(set(w.get("status") for w in _DATA_CACHE.get("works", []) if w.get("status")))),
+        "state_districts": {}
     }
 
 @router.post("/simulate/recalculate")

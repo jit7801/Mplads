@@ -51,6 +51,23 @@ def resolve_csv_data_path() -> Optional[str]:
             return str(candidate)
     return None
 
+def resolve_db_path() -> Optional[str]:
+    env_path = os.getenv("MPLADS_DB_PATH")
+    if env_path and os.path.exists(env_path):
+        return env_path
+    current_dir = Path(__file__).resolve().parent
+    candidates = [
+        current_dir.parent.parent / "data" / "mplads_store.db",
+        current_dir.parent.parent.parent / "data" / "mplads_store.db",
+        Path("data/mplads_store.db").resolve(),
+        Path("../data/mplads_store.db").resolve(),
+        Path("backend/data/mplads_store.db").resolve(),
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+    return None
+
 def resolve_max_csv_records() -> Optional[int]:
     env_max = os.getenv("MPLADS_MAX_RECORDS")
     if env_max:
@@ -97,6 +114,7 @@ class Settings:
     # Base Data Paths
     DATA_PATH: str = resolve_data_path()
     CSV_DATA_PATH: Optional[str] = resolve_csv_data_path()
+    DB_PATH: Optional[str] = resolve_db_path()
     MAX_CSV_RECORDS: Optional[int] = resolve_max_csv_records()
     MP_DATA_PATH: str = resolve_mp_data_path()
     

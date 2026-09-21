@@ -16,8 +16,9 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useToast } from './Toast';
+import { fetchWorks, fetchFilterOptions } from '../api/client';
 
-export default function WorksTableView({ works = [], onSelectWork, initialRiskFilter = '' }) {
+export default function WorksTableView({ works = [], onSelectWork, initialRiskFilter = '', totalAll = 60880 }) {
   const { addToast } = useToast();
   const [search, setSearch] = useState('');
   const [selectedState, setSelectedState] = useState('');
@@ -32,21 +33,82 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
 
+  const [serverWorks, setServerWorks] = useState([]);
+  const [serverTotal, setServerTotal] = useState(0);
+  const [filterOpts, setFilterOpts] = useState({ states: [], categories: [], statuses: [], state_districts: {} });
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     if (initialRiskFilter) {
       setSelectedRisk(initialRiskFilter);
+      setCurrentPage(1);
     }
   }, [initialRiskFilter]);
 
-  // Extract unique filter options
+  // Load distinct filter options from server on mount
+  useEffect(() => {
+    fetchFilterOptions()
+      .then(opts => {
+        if (opts && opts.states) setFilterOpts(opts);
+      })
+      .catch(err => console.warn('Could not load filter options:', err));
+  }, []);
+
+  // Server-side query with 180ms debounce for smooth responsive searching
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+
+    const timer = setTimeout(() => {
+      fetchWorks({
+        limit: pageSize,
+        offset: (currentPage - 1) * pageSize,
+        search: search.trim() || undefined,
+        state: selectedState || undefined,
+        district: selectedDistrict || undefined,
+        category: selectedCategory || undefined,
+        risk_level: selectedRisk || undefined,
+        status: selectedStatus || undefined,
+        sort_by: sortBy,
+        sort_order: sortOrder
+      })
+        .then(res => {
+          if (!isMounted) return;
+          setServerWorks(res.items || []);
+          setServerTotal(res.total || 0);
+          setIsLoading(false);
+        })
+        .catch(err => {
+          if (!isMounted) return;
+          console.warn('Server query fallback:', err);
+          setIsLoading(false);
+        });
+    }, 180);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [currentPage, pageSize, search, selectedState, selectedDistrict, selectedCategory, selectedRisk, selectedStatus, sortBy, sortOrder]);
+
+  // Extract unique filter options with fallback to local props
   const states = useMemo(() => {
+    if (filterOpts.states && filterOpts.states.length > 0) return filterOpts.states;
     return Array.from(new Set(works.map((w) => w.state))).filter(Boolean).sort();
-  }, [works]);
+  }, [filterOpts, works]);
+
   const districts = useMemo(() => {
+    if (selectedState && filterOpts.state_districts && filterOpts.state_districts[selectedState]) {
+      return filterOpts.state_districts[selectedState];
+    }
     const list = selectedState ? works.filter((w) => w.state === selectedState) : works;
     return Array.from(new Set(list.map((w) => w.district))).filter(Boolean).sort();
-  }, [works, selectedState]);
-  const categories = useMemo(() => Array.from(new Set(works.map((w) => w.work_category))).filter(Boolean).sort(), [works]);
+  }, [filterOpts, selectedState, works]);
+
+  const categories = useMemo(() => {
+    if (filterOpts.categories && filterOpts.categories.length > 0) return filterOpts.categories;
+    return Array.from(new Set(works.map((w) => w.work_category))).filter(Boolean).sort();
+  }, [filterOpts, works]);
 
   const hasActiveFilters = Boolean(
     search || selectedState || selectedDistrict || selectedCategory || selectedRisk || selectedStatus
@@ -97,8 +159,10 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
     });
   }, [works, search, selectedState, selectedDistrict, selectedCategory, selectedRisk, selectedStatus, sortBy, sortOrder]);
 
-  const totalPages = Math.ceil(filteredWorks.length / pageSize) || 1;
-  const paginatedWorks = filteredWorks.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const isUsingServer = serverTotal > 0 || isLoading || serverWorks.length > 0;
+  const paginatedWorks = isUsingServer ? serverWorks : filteredWorks.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalRecords = isUsingServer ? serverTotal : filteredWorks.length;
+  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
 
   const toggleSort = (field) => {
     if (sortBy === field) {
@@ -110,7 +174,8 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
   };
 
   const exportCSV = () => {
-    if (filteredWorks.length === 0) {
+    const recordsToExport = paginatedWorks;
+    if (recordsToExport.length === 0) {
       addToast('No records available to export.', 'warning');
       return;
     }
@@ -120,7 +185,7 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
       'Actual Expenditure (INR)', 'Physical Progress (%)', 'Financial Progress (%)',
       'Unified Risk Score', 'Risk Level', 'Primary Signal', 'Status', 'Agency'
     ];
-    const rows = filteredWorks.map((w) => [
+    const rows = recordsToExport.map((w) => [
       `"${w.work_id || ''}"`,
       `"${(w.work_title || '').replace(/"/g, '""')}"`,
       `"${w.work_category || ''}"`,
@@ -145,7 +210,7 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    addToast(`Exported ${filteredWorks.length} projects to CSV successfully.`, 'success');
+    addToast(`Exported ${recordsToExport.length} projects to CSV successfully.`, 'success');
   };
 
   return (
@@ -158,7 +223,7 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
             Risk Works Registry
           </h2>
           <p className="text-xs text-[#667085]">
-            Browse, filter, and inspect all {works.length.toLocaleString()} monitored infrastructure projects.
+            Browse, filter, and inspect all {(totalAll || 60880).toLocaleString()} monitored infrastructure projects.
           </p>
         </div>
 
@@ -323,8 +388,8 @@ export default function WorksTableView({ works = [], onSelectWork, initialRiskFi
         {/* Results Count & Clear Button */}
         <div className="flex items-center justify-between pt-2 border-t border-[#EAECF0] text-xs text-[#667085]">
           <div>
-            Showing <strong className="text-[#1F2933]">{filteredWorks.length.toLocaleString()}</strong> matching projects
-            {hasActiveFilters ? ` (filtered from ${works.length.toLocaleString()} total)` : ''}
+            Showing <strong className="text-[#1F2933]">{totalRecords.toLocaleString()}</strong> matching projects
+            {hasActiveFilters ? ` (filtered from ${(totalAll || 60880).toLocaleString()} total)` : ''}
           </div>
 
           {hasActiveFilters && (
