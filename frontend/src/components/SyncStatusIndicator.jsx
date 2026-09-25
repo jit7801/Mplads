@@ -80,53 +80,53 @@ export default function SyncStatusIndicator({ onSelectWork }) {
       {/* Compact Header Pill */}
       <button
         onClick={() => setIsPanelOpen(true)}
-        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer select-none ${
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer select-none ${
           !isOnline
-            ? 'bg-[#FEF6EE] text-[#B54708] border-[#F9DBAF]'
+            ? 'bg-[#FEF6EE] text-[#916540] border-[#E8E4DC]'
             : isSyncing
-            ? 'bg-[#EFF8FF] text-[#175CD3] border-[#B2DDFF]'
+            ? 'bg-[#F2ECE4] text-[#4B3C32] border-[#C8BFB3]'
             : hasConflicts
-            ? 'bg-[#FFF4ED] text-[#C4320A] border-[#FD853A]'
+            ? 'bg-[#FDF2F2] text-[#C94C4C] border-[#F2C2C2]'
             : hasFailed
-            ? 'bg-[#FDF2F2] text-[#B85C5C] border-[#F8D7DA]'
+            ? 'bg-[#FDF2F2] text-[#C94C4C] border-[#F2C2C2]'
             : hasPending
-            ? 'bg-[#FFFAEB] text-[#B54708] border-[#FEDF89]'
-            : 'bg-[#F6FEF9] text-[#027A48] border-[#A6F4C5]'
+            ? 'bg-[#FFFBEB] text-[#916540] border-[#E8E4DC]'
+            : 'bg-[#F0F8F4] text-[#2E8B57] border-[#C2E0D0]'
         }`}
         title="Offline Field Verification & Sync Manager"
         aria-label="Offline Sync Manager Status"
       >
         {!isOnline ? (
           <>
-            <span className="w-2 h-2 rounded-full bg-[#B54708] animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[#E6A23C] animate-pulse" />
             <span>Offline</span>
             {hasPending && <span className="text-[10px] font-bold">({queueSummary.pending})</span>}
           </>
         ) : isSyncing ? (
           <>
-            <RefreshCw className="w-3 h-3 text-[#175CD3] animate-spin" />
+            <RefreshCw className="w-3 h-3 text-[#4B3C32] animate-spin" />
             <span>Syncing...</span>
           </>
         ) : hasConflicts ? (
           <>
-            <AlertTriangle className="w-3 h-3 text-[#C4320A]" />
+            <AlertTriangle className="w-3 h-3 text-[#C94C4C]" />
             <span>Conflict ({queueSummary.conflict})</span>
           </>
         ) : hasFailed ? (
           <>
-            <AlertCircle className="w-3 h-3 text-[#B85C5C]" />
+            <AlertCircle className="w-3 h-3 text-[#C94C4C]" />
             <span>Sync Failed ({queueSummary.failed})</span>
           </>
         ) : hasPending ? (
           <>
-            <Clock className="w-3 h-3 text-[#B54708]" />
+            <Clock className="w-3 h-3 text-[#E6A23C]" />
             <span>{queueSummary.pending} pending</span>
           </>
         ) : (
           <>
-            <span className="w-2 h-2 rounded-full bg-[#12B76A]" />
-            <span className="hidden sm:inline">Online</span>
-            <CheckCircle2 className="w-3 h-3 text-[#12B76A]" />
+            <span className="w-2 h-2 rounded-full bg-[#2E8B57]" />
+            <span className="hidden sm:inline">Engine Online</span>
+            <CheckCircle2 className="w-3 h-3 text-[#2E8B57]" />
           </>
         )}
       </button>
@@ -134,57 +134,57 @@ export default function SyncStatusIndicator({ onSelectWork }) {
       {/* Sync Manager Modal / Slideover Panel */}
       {isPanelOpen && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-3 sm:p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#050505]/30 backdrop-blur-sm p-4 animate-in fade-in"
           onClick={() => setIsPanelOpen(false)}
         >
           <div 
-            className="bg-white border border-[#E4E7EC] rounded-xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            className="bg-white border border-[#E8E4DC] rounded-2xl w-full max-w-lg shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#E4E7EC] bg-[#F9FAFB]">
-              <div className="flex items-center gap-2">
-                <div className={`p-2 rounded-lg ${isOnline ? 'bg-[#ECFDF3] text-[#027A48]' : 'bg-[#FEF6EE] text-[#B54708]'}`}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E8E4DC] bg-[#F7F7F1]">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-xl ${isOnline ? 'bg-[#F0F8F4] text-[#2E8B57]' : 'bg-[#FEF6EE] text-[#916540]'}`}>
                   {isOnline ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#1F2933]">
+                  <h3 className="text-sm font-semibold text-[#050505]">
                     Field Verification & Sync Center
                   </h3>
-                  <p className="text-[11px] text-[#667085]">
-                    {isOnline ? 'Connected to Central AI Engine' : 'Offline Mode — Local IndexedDB Active'}
+                  <p className="text-[11px] text-[#5E5E5D]">
+                    {isOnline ? 'Connected to Central AI Engine' : 'Offline Mode — Local IndexedDB Storage Active'}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsPanelOpen(false)}
-                className="p-1 rounded text-[#667085] hover:text-[#1F2933]"
+                className="p-1.5 rounded-lg text-[#5E5E5D] hover:text-[#050505] hover:bg-[#E8E4DC]/50 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Content Area */}
-            <div className="p-5 overflow-y-auto space-y-4 text-xs">
+            <div className="p-6 overflow-y-auto space-y-4 text-xs">
               {/* Status Alert Banner */}
-              <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 ${
+              <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-2 ${
                 !isOnline 
-                  ? 'bg-[#FEF6EE] border-[#F9DBAF] text-[#B54708]' 
+                  ? 'bg-[#FEF6EE] border-[#E8E4DC] text-[#916540]' 
                   : isSyncing 
-                  ? 'bg-[#EFF8FF] border-[#B2DDFF] text-[#175CD3]'
+                  ? 'bg-[#F7F7F1] border-[#C8BFB3] text-[#4B3C32]'
                   : hasConflicts
-                  ? 'bg-[#FFF4ED] border-[#FD853A] text-[#C4320A]'
-                  : 'bg-[#F6FEF9] border-[#A6F4C5] text-[#027A48]'
+                  ? 'bg-[#FDF2F2] border-[#F2C2C2] text-[#C94C4C]'
+                  : 'bg-[#F0F8F4] border-[#C2E0D0] text-[#2E8B57]'
               }`}>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   {!isOnline ? <WifiOff className="w-4 h-4 shrink-0" /> : <CheckCircle2 className="w-4 h-4 shrink-0" />}
-                  <span className="font-semibold">{statusMessage}</span>
+                  <span className="font-medium text-xs">{statusMessage}</span>
                 </div>
                 {isOnline && (hasPending || hasFailed) && (
                   <button
                     onClick={handleTriggerSync}
                     disabled={isSyncing}
-                    className="btn-primary py-1 px-2.5 text-[11px] flex items-center gap-1"
+                    className="btn-primary py-1 px-3 text-[11px] flex items-center gap-1.5"
                   >
                     <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
                     <span>Sync Now</span>
@@ -193,21 +193,21 @@ export default function SyncStatusIndicator({ onSelectWork }) {
               </div>
 
               {/* Offline Storage Metrics Grid */}
-              <div className="grid grid-cols-3 gap-2.5 text-center">
-                <div className="p-3 bg-[#F9FAFB] rounded-lg border border-[#EAECF0]">
-                  <div className="text-[11px] text-[#667085] font-medium">Cached Projects</div>
-                  <div className="text-lg font-bold text-[#1F2933] mt-0.5">{cachedCount}</div>
-                  <div className="text-[10px] text-[#98A2B3]">Ready for field</div>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="p-3 bg-[#F7F7F1] rounded-xl border border-[#E8E4DC]">
+                  <div className="text-[11px] text-[#5E5E5D] font-medium">Cached Projects</div>
+                  <div className="text-xl font-semibold text-[#050505] mt-0.5">{cachedCount}</div>
+                  <div className="text-[10px] text-[#5E5E5D]/80">Ready for field</div>
                 </div>
-                <div className="p-3 bg-[#F9FAFB] rounded-lg border border-[#EAECF0]">
-                  <div className="text-[11px] text-[#667085] font-medium">Pending Sync</div>
-                  <div className="text-lg font-bold text-[#B54708] mt-0.5">{queueSummary.pending}</div>
-                  <div className="text-[10px] text-[#98A2B3]">In sync queue</div>
+                <div className="p-3 bg-[#F7F7F1] rounded-xl border border-[#E8E4DC]">
+                  <div className="text-[11px] text-[#5E5E5D] font-medium">Pending Sync</div>
+                  <div className="text-xl font-semibold text-[#916540] mt-0.5">{queueSummary.pending}</div>
+                  <div className="text-[10px] text-[#5E5E5D]/80">In sync queue</div>
                 </div>
-                <div className="p-3 bg-[#F9FAFB] rounded-lg border border-[#EAECF0]">
-                  <div className="text-[11px] text-[#667085] font-medium">Synced Records</div>
-                  <div className="text-lg font-bold text-[#027A48] mt-0.5">{queueSummary.synced}</div>
-                  <div className="text-[10px] text-[#98A2B3]">Authoritative</div>
+                <div className="p-3 bg-[#F7F7F1] rounded-xl border border-[#E8E4DC]">
+                  <div className="text-[11px] text-[#5E5E5D] font-medium">Synced Records</div>
+                  <div className="text-xl font-semibold text-[#2E8B57] mt-0.5">{queueSummary.synced}</div>
+                  <div className="text-[10px] text-[#5E5E5D]/80">Authoritative</div>
                 </div>
               </div>
 
@@ -216,16 +216,16 @@ export default function SyncStatusIndicator({ onSelectWork }) {
                 <button
                   onClick={handleDownloadBundle}
                   disabled={!isOnline || isDownloading}
-                  className="flex-1 btn-secondary text-xs flex items-center justify-center gap-1.5 py-2"
+                  className="flex-1 btn-secondary text-xs flex items-center justify-center gap-2 py-2.5"
                 >
-                  <Download className="w-3.5 h-3.5 text-[#667085]" />
+                  <Download className="w-3.5 h-3.5 text-[#5E5E5D]" />
                   <span>{isDownloading ? 'Caching Data...' : 'Cache Projects for Field Work'}</span>
                 </button>
 
                 <button
                   onClick={handleTriggerSync}
                   disabled={!isOnline || isSyncing}
-                  className="btn-primary text-xs flex items-center justify-center gap-1.5 py-2 px-4"
+                  className="btn-primary text-xs flex items-center justify-center gap-2 py-2.5 px-4"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
                   <span>Sync Queue</span>
@@ -234,30 +234,30 @@ export default function SyncStatusIndicator({ onSelectWork }) {
 
               {/* Conflict Notice if any */}
               {hasConflicts && (
-                <div className="p-3 bg-[#FFF4ED] border border-[#FD853A] rounded-lg text-[#C4320A] space-y-1.5">
-                  <div className="flex items-center gap-1.5 font-bold text-xs">
+                <div className="p-3.5 bg-[#FDF2F2] border border-[#F2C2C2] rounded-xl text-[#C94C4C] space-y-1.5">
+                  <div className="flex items-center gap-1.5 font-semibold text-xs">
                     <AlertTriangle className="w-4 h-4" />
                     <span>Version Conflict Detected</span>
                   </div>
-                  <p className="text-[11px] leading-relaxed text-[#7A271A]">
+                  <p className="text-[11px] leading-relaxed text-[#5E5E5D]">
                     This project was updated after it was downloaded. Your offline verification could not automatically overwrite the newer server information. Review the latest project information before submitting again.
                   </p>
                 </div>
               )}
 
               {/* Sync Queue Operations Log */}
-              <div className="space-y-2 pt-2 border-t border-[#EAECF0]">
+              <div className="space-y-2 pt-2 border-t border-[#E8E4DC]">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#1F2933] text-xs uppercase tracking-wider">
+                  <span className="font-semibold text-[#050505] text-xs">
                     Recent Queue Operations
                   </span>
-                  <span className="text-[11px] text-[#667085]">
+                  <span className="text-[11px] text-[#5E5E5D]">
                     Total: {queueItems.length}
                   </span>
                 </div>
 
                 {queueItems.length === 0 ? (
-                  <div className="p-4 rounded-lg bg-[#F9FAFB] border border-[#EAECF0] text-center text-xs text-[#667085]">
+                  <div className="p-4 rounded-xl bg-[#F7F7F1] border border-[#E8E4DC] text-center text-xs text-[#5E5E5D]">
                     No operations in sync queue. All field records are up to date.
                   </div>
                 ) : (
@@ -265,30 +265,30 @@ export default function SyncStatusIndicator({ onSelectWork }) {
                     {queueItems.map((item) => (
                       <div
                         key={item.operation_id}
-                        className="p-2.5 rounded-lg border border-[#EAECF0] bg-white flex items-center justify-between text-xs"
+                        className="p-3 rounded-xl border border-[#E8E4DC] bg-white flex items-center justify-between text-xs hover:border-[#C8BFB3] transition-colors"
                       >
                         <div className="space-y-0.5">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-[#1F2933]">{item.project_id}</span>
-                            <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold uppercase ${
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-[#050505]">{item.project_id}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
                               item.status === 'synced'
-                                ? 'bg-[#ECFDF3] text-[#027A48]'
+                                ? 'bg-[#F0F8F4] text-[#2E8B57]'
                                 : item.status === 'syncing'
-                                ? 'bg-[#EFF8FF] text-[#175CD3]'
+                                ? 'bg-[#F7F7F1] text-[#4B3C32]'
                                 : item.status === 'conflict'
-                                ? 'bg-[#FFF4ED] text-[#C4320A]'
+                                ? 'bg-[#FDF2F2] text-[#C94C4C]'
                                 : item.status === 'failed'
-                                ? 'bg-[#FDF2F2] text-[#B85C5C]'
-                                : 'bg-[#FEF6EE] text-[#B54708]'
+                                ? 'bg-[#FDF2F2] text-[#C94C4C]'
+                                : 'bg-[#FEF6EE] text-[#916540]'
                             }`}>
                               {item.status}
                             </span>
                           </div>
-                          <div className="text-[11px] text-[#667085]">
+                          <div className="text-[11px] text-[#5E5E5D]">
                             Progress: {item.payload?.progress}% · {item.payload?.verification_status}
                           </div>
                           {item.last_error && (
-                            <div className="text-[10px] text-[#B85C5C] italic">
+                            <div className="text-[10px] text-[#C94C4C] italic">
                               Error: {item.last_error}
                             </div>
                           )}
@@ -300,7 +300,7 @@ export default function SyncStatusIndicator({ onSelectWork }) {
                               setIsPanelOpen(false);
                               onSelectWork(item.project_id);
                             }}
-                            className="p-1 rounded text-[#667085] hover:text-[#183B56]"
+                            className="p-1.5 rounded-lg text-[#5E5E5D] hover:text-[#050505] hover:bg-[#F7F7F1] transition-colors"
                             title="Inspect work dossier"
                           >
                             <ChevronRight className="w-4 h-4" />
@@ -314,11 +314,11 @@ export default function SyncStatusIndicator({ onSelectWork }) {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3 border-t border-[#EAECF0] bg-[#F9FAFB] flex justify-between items-center text-[11px] text-[#667085]">
+            <div className="px-6 py-3.5 border-t border-[#E8E4DC] bg-[#F7F7F1] flex justify-between items-center text-[11px] text-[#5E5E5D]">
               <span>MPLADS Offline Sync Protocol v1.0</span>
               <button
                 onClick={() => setIsPanelOpen(false)}
-                className="btn-secondary py-1 px-3 text-xs"
+                className="btn-secondary py-1.5 px-3.5 text-xs"
               >
                 Close
               </button>

@@ -18,12 +18,12 @@ export default function Navbar({
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0b0f19]/90 backdrop-blur-md border-b border-slate-800">
+    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-[#E8E4DC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
           {/* Brand Logo & Title */}
-          <Logo theme="dark" size="lg" />
+          <Logo theme="light" size="lg" />
 
           {/* Navigation Tabs */}
           <nav className="hidden md:flex items-center space-x-1">
@@ -36,10 +36,10 @@ export default function Navbar({
               <button
                 key={tab.id}
                 onClick={() => setCurrentTab(tab.id)}
-                className={`px-3.5 py-2 text-xs font-semibold rounded-md transition-all ${
+                className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all ${
                   currentTab === tab.id
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
-                    : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                    ? "bg-[#4B3C32] text-white shadow-xs"
+                    : "text-[#5E5E5D] hover:text-[#050505] hover:bg-[#F7F7F1]"
                 }`}
               >
                 {tab.label}
@@ -52,10 +52,10 @@ export default function Navbar({
             {/* Judge Simulator Button */}
             <button
               onClick={onOpenSimulator}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 text-amber-300 border border-amber-500/30 rounded-lg transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#4B3C32]/10 hover:bg-[#4B3C32]/15 text-[#4B3C32] border border-[#4B3C32]/20 rounded-xl transition-all"
               title="Interactive Judge Simulator: Adjust weights live"
             >
-              <Sliders className="w-3.5 h-3.5 text-amber-400" />
+              <Sliders className="w-3.5 h-3.5 text-[#4B3C32]" />
               <span>Weight Simulator</span>
             </button>
 
@@ -64,7 +64,7 @@ export default function Navbar({
               <select
                 value={currentRole}
                 onChange={(e) => setCurrentRole(e.target.value)}
-                className="bg-slate-900 text-slate-200 text-xs font-medium border border-slate-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                className="bg-[#F7F7F1]/70 text-[#050505] text-xs font-medium border border-[#E8E4DC] rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#4B3C32] cursor-pointer"
               >
                 {roles.map((r) => (
                   <option key={r.id} value={r.id}>

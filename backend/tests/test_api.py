@@ -39,6 +39,12 @@ def test_summary_endpoint():
     assert "flagged_amount" in res
     assert "duplicate_candidates_count" in res
 
+    # Verify state and district filtering works without TypeError
+    state_res = get_summary(state="Rajasthan")
+    assert state_res["total_works"] > 0
+    assert "duplicate_candidates_count" in state_res
+    assert "evaluation_date" in state_res
+
 def test_works_endpoint_and_pagination():
     res = get_works(limit=10, offset=0)
     assert res["limit"] == 10

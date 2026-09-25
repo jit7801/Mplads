@@ -31,10 +31,10 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
 
   if (!pairs || pairs.length === 0) {
     return (
-      <div className="gov-card p-12 text-center text-[#667085]">
-        <Copy className="w-8 h-8 text-[#D0D5DD] mx-auto mb-2" />
-        <div className="font-semibold text-sm text-[#1F2933]">No duplicate candidates detected</div>
-        <p className="text-xs text-[#667085] mt-1 max-w-sm mx-auto">
+      <div className="gov-card p-12 text-center text-[#5E5E5D]">
+        <Copy className="w-8 h-8 text-[#C8BFB3] mx-auto mb-2" />
+        <div className="font-semibold text-sm text-[#050505]">No duplicate candidates detected</div>
+        <p className="text-xs text-[#5E5E5D] mt-1 max-w-sm mx-auto">
           All projects evaluated within 150m spatial bubbles currently show distinct titles and independent physical assets.
         </p>
       </div>
@@ -44,10 +44,10 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
   const activePair = pairs[selectedPairIndex] || pairs[0];
   if (!activePair || !activePair.work_a || !activePair.work_b) {
     return (
-      <div className="gov-card p-12 text-center text-[#667085]">
-        <Copy className="w-8 h-8 text-[#D0D5DD] mx-auto mb-2" />
-        <div className="font-semibold text-sm text-[#1F2933]">No duplicate candidates detected</div>
-        <p className="text-xs text-[#667085] mt-1 max-w-sm mx-auto">
+      <div className="gov-card p-12 text-center text-[#5E5E5D]">
+        <Copy className="w-8 h-8 text-[#C8BFB3] mx-auto mb-2" />
+        <div className="font-semibold text-sm text-[#050505]">No duplicate candidates detected</div>
+        <p className="text-xs text-[#5E5E5D] mt-1 max-w-sm mx-auto">
           All projects evaluated within 150m spatial bubbles currently show distinct titles and independent physical assets.
         </p>
       </div>
@@ -89,18 +89,18 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-[#1F2933] tracking-tight">
+          <h2 className="text-lg font-bold text-[#050505] tracking-tight">
             Possible Duplicate & Overlapping Work Candidates
           </h2>
-          <p className="text-xs text-[#667085]">
+          <p className="text-xs text-[#5E5E5D]">
             Investigate co-located infrastructure works with high textual similarity to verify whether they represent a duplicate sanction.
           </p>
         </div>
 
         {/* Previous / Next Pair Controls */}
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="text-xs text-[#667085]">
-            Pair <strong>{selectedPairIndex + 1}</strong> of <strong>{pairs.length}</strong>
+          <span className="text-xs text-[#5E5E5D]">
+            Pair <strong className="text-[#050505]">{selectedPairIndex + 1}</strong> of <strong className="text-[#050505]">{pairs.length}</strong>
           </span>
           <div className="flex items-center gap-1">
             <button
@@ -124,7 +124,7 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
       </div>
 
       {/* Candidate Pair Selector Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1.5">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-thin">
         {pairs.map((p, idx) => {
           const status = resolutionStatus[p.pair_id] || p.verification_status || 'PENDING_VERIFICATION';
           const isResolved = status !== 'PENDING_VERIFICATION';
@@ -132,20 +132,20 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
             <button
               key={p.pair_id}
               onClick={() => setSelectedPairIndex(idx)}
-              className={`px-3 py-2 text-xs font-semibold rounded-lg border whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+              className={`px-3 py-2 text-xs font-semibold rounded-xl border whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
                 selectedPairIndex === idx
-                  ? 'bg-[#183B56] text-white border-[#183B56] shadow-sm'
-                  : 'bg-white text-[#475467] border-[#D0D5DD] hover:bg-[#F9FAFB]'
+                  ? 'bg-[#4B3C32] text-white border-[#4B3C32] shadow-xs'
+                  : 'bg-white text-[#5E5E5D] border-[#E8E4DC] hover:bg-[#F7F7F1]'
               }`}
             >
               <span>Pair #{idx + 1}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                selectedPairIndex === idx ? 'bg-white/20 text-white' : 'bg-[#F2F4F7] text-[#475467]'
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                selectedPairIndex === idx ? 'bg-white/20 text-white' : 'bg-[#F7F7F1] text-[#5E5E5D]'
               }`}>
                 {p.distance_meters}m · {p.text_similarity}%
               </span>
               {isResolved && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#2E8B57]" />
               )}
             </button>
           );
@@ -156,19 +156,19 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
       <div className="gov-card p-4 sm:p-6 space-y-5">
         
         {/* Verification Status Banner */}
-        <div className="p-3 rounded-lg bg-[#FEF9EE] border border-[#F9ECCB] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="p-3 rounded-xl bg-[#E6A23C]/10 border border-[#E6A23C]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#B58532] shrink-0" />
-            <span className="text-xs font-semibold text-[#B58532]">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#E6A23C] shrink-0" />
+            <span className="text-xs font-semibold text-[#916540]">
               Possible Duplicate Sanction Candidate — Co-located within {distance_meters} meters
             </span>
           </div>
-          <span className={`text-[11px] font-bold px-2 py-0.5 rounded border self-start sm:self-auto ${
+          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-lg border self-start sm:self-auto ${
             currentStatus === 'VERIFIED_DUPLICATE'
-              ? 'bg-[#FDF2F2] text-[#B85C5C] border-[#F8D7DA]'
+              ? 'bg-[#C94C4C]/10 text-[#C94C4C] border-[#C94C4C]/25'
               : currentStatus === 'LEGITIMATE_SEPARATE'
-              ? 'bg-[#F2F8F4] text-[#487A5E] border-[#D8EADB]'
-              : 'bg-white text-[#667085] border-[#E4E7EC]'
+              ? 'bg-[#2E8B57]/10 text-[#2E8B57] border-[#2E8B57]/25'
+              : 'bg-white text-[#5E5E5D] border-[#E8E4DC]'
           }`}>
             {currentStatus.replace('_', ' ')}
           </span>
@@ -178,38 +178,38 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           
           {/* Work A */}
-          <div className="p-4 rounded-lg bg-[#F9FAFB] border border-[#EAECF0] flex flex-col justify-between space-y-3">
+          <div className="p-4 rounded-xl bg-[#F7F7F1]/60 border border-[#E8E4DC] flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-bold text-[#183B56] uppercase tracking-wider text-[11px]">Primary Record (Work A)</span>
-                <span className="font-mono text-[#667085] text-[10px]">{work_a.work_id}</span>
+                <span className="font-bold text-[#4B3C32] uppercase tracking-wider text-[11px]">Primary Record (Work A)</span>
+                <span className="font-mono text-[#5E5E5D] text-[10px]">{work_a.work_id}</span>
               </div>
-              <h4 className="text-sm font-bold text-[#1F2933] leading-snug mb-2">
+              <h4 className="text-sm font-bold text-[#050505] leading-snug mb-2">
                 {work_a.work_title}
               </h4>
-              <div className="space-y-1 text-xs text-[#667085]">
+              <div className="space-y-1.5 text-xs text-[#5E5E5D]">
                 <div className="flex justify-between">
                   <span>Category:</span>
-                  <strong className="text-[#1F2933]">{work_a.work_category}</strong>
+                  <strong className="text-[#050505]">{work_a.work_category}</strong>
                 </div>
                 <div className="flex justify-between">
                   <span>Agency:</span>
-                  <span className="text-[#1F2933] truncate max-w-[180px]">{work_a.implementing_agency}</span>
+                  <span className="text-[#050505] truncate max-w-[180px]">{work_a.implementing_agency}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Sanctioned:</span>
-                  <strong className="text-[#1F2933]">₹{((work_a.sanctioned_amount || 0) / 100000).toFixed(2)}L</strong>
+                  <strong className="text-[#050505]">₹{((work_a.sanctioned_amount || 0) / 100000).toFixed(2)}L</strong>
                 </div>
                 <div className="flex justify-between">
                   <span>Progress:</span>
-                  <span className="font-semibold text-[#1F2933]">{work_a.physical_progress}% phys</span>
+                  <span className="font-semibold text-[#050505]">{work_a.physical_progress}% phys</span>
                 </div>
               </div>
             </div>
 
             <button
               onClick={() => onSelectWork(work_a.work_id)}
-              className="btn-secondary w-full py-1 text-xs font-medium inline-flex items-center justify-center gap-1"
+              className="btn-secondary w-full py-1.5 text-xs font-medium inline-flex items-center justify-center gap-1 mt-2"
             >
               <Eye className="w-3.5 h-3.5" />
               <span>Inspect Full Work A Dossier</span>
@@ -217,38 +217,38 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
           </div>
 
           {/* Work B */}
-          <div className="p-4 rounded-lg bg-[#F9FAFB] border border-[#EAECF0] flex flex-col justify-between space-y-3">
+          <div className="p-4 rounded-xl bg-[#F7F7F1]/60 border border-[#E8E4DC] flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-bold text-[#C8754D] uppercase tracking-wider text-[11px]">Suspected Match (Work B)</span>
-                <span className="font-mono text-[#667085] text-[10px]">{work_b.work_id}</span>
+                <span className="font-bold text-[#916540] uppercase tracking-wider text-[11px]">Suspected Match (Work B)</span>
+                <span className="font-mono text-[#5E5E5D] text-[10px]">{work_b.work_id}</span>
               </div>
-              <h4 className="text-sm font-bold text-[#1F2933] leading-snug mb-2">
+              <h4 className="text-sm font-bold text-[#050505] leading-snug mb-2">
                 {work_b.work_title}
               </h4>
-              <div className="space-y-1 text-xs text-[#667085]">
+              <div className="space-y-1.5 text-xs text-[#5E5E5D]">
                 <div className="flex justify-between">
                   <span>Category:</span>
-                  <strong className="text-[#1F2933]">{work_b.work_category}</strong>
+                  <strong className="text-[#050505]">{work_b.work_category}</strong>
                 </div>
                 <div className="flex justify-between">
                   <span>Agency:</span>
-                  <span className="text-[#1F2933] truncate max-w-[180px]">{work_b.implementing_agency}</span>
+                  <span className="text-[#050505] truncate max-w-[180px]">{work_b.implementing_agency}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Sanctioned:</span>
-                  <strong className="text-[#1F2933]">₹{((work_b.sanctioned_amount || 0) / 100000).toFixed(2)}L</strong>
+                  <strong className="text-[#050505]">₹{((work_b.sanctioned_amount || 0) / 100000).toFixed(2)}L</strong>
                 </div>
                 <div className="flex justify-between">
                   <span>Progress:</span>
-                  <span className="font-semibold text-[#1F2933]">{work_b.physical_progress}% phys</span>
+                  <span className="font-semibold text-[#050505]">{work_b.physical_progress}% phys</span>
                 </div>
               </div>
             </div>
 
             <button
               onClick={() => onSelectWork(work_b.work_id)}
-              className="btn-secondary w-full py-1 text-xs font-medium inline-flex items-center justify-center gap-1"
+              className="btn-secondary w-full py-1.5 text-xs font-medium inline-flex items-center justify-center gap-1 mt-2"
             >
               <Eye className="w-3.5 h-3.5" />
               <span>Inspect Full Work B Dossier</span>
@@ -259,28 +259,28 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
 
         {/* Empirical Overlap Metrics */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          <div className="p-3 rounded-lg bg-white border border-[#E4E7EC] text-center">
-            <span className="text-[10px] text-[#667085] block font-medium">Text Similarity</span>
-            <strong className="text-sm text-[#1F2933] font-mono">{text_similarity}%</strong>
+          <div className="p-3 rounded-xl bg-[#F7F7F1]/50 border border-[#E8E4DC] text-center">
+            <span className="text-[10px] text-[#5E5E5D] block font-medium">Text Similarity</span>
+            <strong className="text-sm text-[#050505] font-mono">{text_similarity}%</strong>
           </div>
-          <div className="p-3 rounded-lg bg-white border border-[#E4E7EC] text-center">
-            <span className="text-[10px] text-[#667085] block font-medium">Spatial Distance</span>
-            <strong className="text-sm text-[#1F2933] font-mono">{distance_meters} m</strong>
+          <div className="p-3 rounded-xl bg-[#F7F7F1]/50 border border-[#E8E4DC] text-center">
+            <span className="text-[10px] text-[#5E5E5D] block font-medium">Spatial Distance</span>
+            <strong className="text-sm text-[#050505] font-mono">{distance_meters} m</strong>
           </div>
-          <div className="p-3 rounded-lg bg-white border border-[#E4E7EC] text-center">
-            <span className="text-[10px] text-[#667085] block font-medium">Implementing Agency</span>
-            <strong className={`text-sm ${same_agency ? 'text-[#B58532]' : 'text-[#475467]'}`}>
+          <div className="p-3 rounded-xl bg-[#F7F7F1]/50 border border-[#E8E4DC] text-center">
+            <span className="text-[10px] text-[#5E5E5D] block font-medium">Implementing Agency</span>
+            <strong className={`text-sm ${same_agency ? 'text-[#916540]' : 'text-[#5E5E5D]'}`}>
               {same_agency ? 'Identical' : 'Different'}
             </strong>
           </div>
-          <div className="p-3 rounded-lg bg-white border border-[#E4E7EC] text-center">
-            <span className="text-[10px] text-[#667085] block font-medium">Duplicate Index</span>
-            <strong className="text-sm text-[#B85C5C] font-mono">{combined_score}%</strong>
+          <div className="p-3 rounded-xl bg-[#F7F7F1]/50 border border-[#E8E4DC] text-center">
+            <span className="text-[10px] text-[#5E5E5D] block font-medium">Duplicate Index</span>
+            <strong className="text-sm text-[#C94C4C] font-mono">{combined_score}%</strong>
           </div>
         </div>
 
         {/* Synchronized Spatial Map */}
-        <div className="h-56 sm:h-64 rounded-lg overflow-hidden border border-[#E4E7EC] relative z-0">
+        <div className="h-56 sm:h-64 rounded-xl overflow-hidden border border-[#E8E4DC] relative z-0">
           <MapContainer
             key={pair_id || selectedPairIndex}
             center={[centerLat, centerLon]}
@@ -313,23 +313,23 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
                 [latA, lonA],
                 [latB, lonB]
               ]}
-              color="#B85C5C"
+              color="#C94C4C"
               dashArray="4, 6"
             />
           </MapContainer>
         </div>
 
         {/* Verification Action Directives */}
-        <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-[#E4E7EC]">
-          <span className="text-xs text-[#667085]">
+        <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-[#E8E4DC]">
+          <span className="text-xs text-[#5E5E5D]">
             Administrative Determination for District Authority:
           </span>
 
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => markStatus('LEGITIMATE_SEPARATE')}
-              className={`btn-secondary text-xs py-1.5 px-3 ${
-                currentStatus === 'LEGITIMATE_SEPARATE' ? 'bg-[#F2F8F4] border-[#D8EADB] text-[#487A5E] font-bold' : ''
+              className={`btn-secondary text-xs py-1.5 px-3 rounded-xl ${
+                currentStatus === 'LEGITIMATE_SEPARATE' ? 'bg-[#2E8B57]/10 border-[#2E8B57]/25 text-[#2E8B57] font-bold' : ''
               }`}
             >
               <Check className="w-3.5 h-3.5 inline mr-1" />
@@ -337,8 +337,8 @@ export default function DuplicatesView({ pairs = [], onSelectWork }) {
             </button>
             <button
               onClick={() => markStatus('VERIFIED_DUPLICATE')}
-              className={`btn-primary text-xs py-1.5 px-3 ${
-                currentStatus === 'VERIFIED_DUPLICATE' ? 'bg-[#B85C5C] hover:bg-[#912018]' : ''
+              className={`btn-primary text-xs py-1.5 px-3 rounded-xl ${
+                currentStatus === 'VERIFIED_DUPLICATE' ? 'bg-[#C94C4C] hover:bg-[#C94C4C]/90 text-white' : ''
               }`}
             >
               <ShieldAlert className="w-3.5 h-3.5 inline mr-1" />

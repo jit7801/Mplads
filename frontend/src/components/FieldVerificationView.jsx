@@ -289,30 +289,30 @@ export default function FieldVerificationView({
   }, [cachedProjects, searchQuery]);
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6">
       
       {/* Top Banner Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAECF0] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E8E4DC] pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-[#1F2933] tracking-tight">
+            <h1 className="text-xl font-bold text-[#050505] tracking-tight">
               Offline-First Field Verification
             </h1>
             <span className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
-              syncState.isOnline ? 'bg-[#F6FEF9] text-[#027A48] border-[#A6F4C5]' : 'bg-[#FEF6EE] text-[#B54708] border-[#F9DBAF]'
+              syncState.isOnline ? 'bg-[#2E8B57]/10 text-[#2E8B57] border-[#2E8B57]/25' : 'bg-[#E6A23C]/10 text-[#916540] border-[#E6A23C]/25'
             }`}>
               {syncState.isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
               <span>{syncState.isOnline ? 'Online Sync Active' : 'Offline Mode Active'}</span>
             </span>
           </div>
-          <p className="text-xs text-[#667085] mt-1">
+          <p className="text-xs text-[#5E5E5D] mt-1">
             Empower field engineers and audit officers to collect spot verification evidence without network access.
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <div className="text-xs text-[#667085] bg-[#F9FAFB] px-3 py-1.5 rounded-lg border border-[#EAECF0]">
-            Cached Projects: <strong className="text-[#1F2933]">{cachedProjects.length}</strong>
+          <div className="text-xs text-[#5E5E5D] bg-[#FFFFFF] px-3 py-1.5 rounded-xl border border-[#E8E4DC] shadow-xs">
+            Cached Projects: <strong className="text-[#050505]">{cachedProjects.length}</strong>
           </div>
         </div>
       </div>
@@ -323,45 +323,45 @@ export default function FieldVerificationView({
         {/* Left Column: Project Selector (lg:col-span-4) */}
         <div className="lg:col-span-4 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#1F2933] uppercase tracking-wider">
+            <span className="text-xs font-bold text-[#050505] uppercase tracking-wider">
               Assigned Projects ({filteredProjects.length})
             </span>
           </div>
 
           {/* Search Box */}
           <div className="relative">
-            <Search className="w-4 h-4 text-[#98A2B3] absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#5E5E5D] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search by ID, title, district..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-white border border-[#D0D5DD] rounded-lg text-xs focus:outline-none focus:border-[#183B56]"
+              className="w-full pl-9 pr-3 py-2 bg-white border border-[#E8E4DC] rounded-xl text-xs text-[#050505] focus:outline-none focus:border-[#4B3C32] transition-all"
             />
           </div>
 
           {/* Project List */}
-          <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1 scrollbar-thin">
             {filteredProjects.map((p) => {
               const isSelected = p.work_id === selectedWorkId;
               return (
                 <div
                   key={p.work_id}
                   onClick={() => setSelectedWorkId(p.work_id)}
-                  className={`p-3 rounded-lg border text-xs cursor-pointer transition-all ${
+                  className={`p-3 rounded-xl border text-xs cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-[#F2F4F7] border-[#183B56] shadow-xs'
-                      : 'bg-white border-[#EAECF0] hover:border-[#D0D5DD]'
+                      ? 'bg-[#FFFFFF] border-[#4B3C32] shadow-xs ring-1 ring-[#4B3C32]/20'
+                      : 'bg-white border-[#E8E4DC] hover:border-[#C8BFB3] hover:bg-[#F7F7F1]/50'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="font-bold text-[#1F2933] font-mono">{p.work_id}</span>
+                    <span className="font-bold text-[#050505] font-mono">{p.work_id}</span>
                     <RiskBadge level={p.risk_level} score={p.overall_risk_score} size="xs" />
                   </div>
-                  <div className="font-medium text-[#344054] mt-1 line-clamp-1">{p.work_title}</div>
-                  <div className="flex items-center justify-between text-[11px] text-[#667085] mt-2 pt-2 border-t border-[#EAECF0]/60">
+                  <div className="font-medium text-[#050505] mt-1 line-clamp-1">{p.work_title}</div>
+                  <div className="flex items-center justify-between text-[11px] text-[#5E5E5D] mt-2 pt-2 border-t border-[#E8E4DC]/60">
                     <span>{p.district}</span>
-                    <span>Prog: <strong>{p.physical_progress}%</strong></span>
+                    <span>Prog: <strong className="text-[#050505]">{p.physical_progress}%</strong></span>
                   </div>
                 </div>
               );
@@ -375,52 +375,52 @@ export default function FieldVerificationView({
           {activeProject ? (
             <>
               {/* Active Project Meta Dossier Card */}
-              <div className="gov-card p-5 border-l-4 border-l-[#183B56] space-y-3">
+              <div className="gov-card p-5 border-l-4 border-l-[#4B3C32] space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
-                    <span className="text-[11px] font-mono font-bold text-[#183B56] bg-[#F2F4F7] px-2 py-0.5 rounded">
+                    <span className="text-[11px] font-mono font-bold text-[#4B3C32] bg-[#F7F7F1] px-2 py-0.5 rounded-lg border border-[#E8E4DC]">
                       {activeProject.work_id}
                     </span>
-                    <h2 className="text-sm sm:text-base font-bold text-[#1F2933] mt-1">
+                    <h2 className="text-sm sm:text-base font-bold text-[#050505] mt-1.5">
                       {activeProject.work_title}
                     </h2>
                   </div>
                   <div className="flex items-center gap-2">
                     <RiskBadge level={activeProject.risk_level} score={activeProject.overall_risk_score} />
-                    <span className="text-[11px] text-[#667085] bg-[#F9FAFB] px-2 py-1 rounded border border-[#EAECF0]">
+                    <span className="text-[11px] text-[#5E5E5D] bg-[#F7F7F1] px-2 py-1 rounded-lg border border-[#E8E4DC]">
                       v{activeProject.version || 1}
                     </span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2 border-t border-[#EAECF0]">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-3 border-t border-[#E8E4DC]">
                   <div>
-                    <span className="text-[#667085]">District / State:</span>
-                    <div className="font-semibold text-[#1F2933]">{activeProject.district}, {activeProject.state}</div>
+                    <span className="text-[#5E5E5D]">District / State:</span>
+                    <div className="font-semibold text-[#050505]">{activeProject.district}, {activeProject.state}</div>
                   </div>
                   <div>
-                    <span className="text-[#667085]">Sanctioned Cost:</span>
-                    <div className="font-semibold text-[#1F2933]">₹{((activeProject.sanctioned_amount || 0) / 100000).toFixed(2)} L</div>
+                    <span className="text-[#5E5E5D]">Sanctioned Cost:</span>
+                    <div className="font-semibold text-[#050505]">₹{((activeProject.sanctioned_amount || 0) / 100000).toFixed(2)} L</div>
                   </div>
                   <div>
-                    <span className="text-[#667085]">Reported Progress:</span>
-                    <div className="font-semibold text-[#1F2933]">{activeProject.physical_progress}%</div>
+                    <span className="text-[#5E5E5D]">Reported Progress:</span>
+                    <div className="font-semibold text-[#050505]">{activeProject.physical_progress}%</div>
                   </div>
                   <div>
-                    <span className="text-[#667085]">Financial Spent:</span>
-                    <div className="font-semibold text-[#1F2933]">{activeProject.financial_progress}%</div>
+                    <span className="text-[#5E5E5D]">Financial Spent:</span>
+                    <div className="font-semibold text-[#050505]">{activeProject.financial_progress}%</div>
                   </div>
                 </div>
               </div>
 
               {/* Status or Conflict Banners */}
               {conflictDetail && (
-                <div className="p-4 bg-[#FFF4ED] border border-[#FD853A] rounded-xl text-xs space-y-2">
-                  <div className="flex items-center gap-2 text-[#C4320A] font-bold">
+                <div className="p-4 bg-[#C94C4C]/10 border border-[#C94C4C]/30 rounded-2xl text-xs space-y-2">
+                  <div className="flex items-center gap-2 text-[#C94C4C] font-bold">
                     <AlertTriangle className="w-4 h-4" />
                     <span>Optimistic Concurrency Conflict</span>
                   </div>
-                  <p className="text-[#7A271A] leading-relaxed">
+                  <p className="text-[#050505] leading-relaxed">
                     {conflictDetail}
                   </p>
                   <button
@@ -436,13 +436,13 @@ export default function FieldVerificationView({
               )}
 
               {saveSuccessMessage && (
-                <div className="p-4 bg-[#F6FEF9] border border-[#A6F4C5] rounded-xl text-xs text-[#027A48] space-y-1.5 animate-in fade-in">
+                <div className="p-4 bg-[#2E8B57]/10 border border-[#2E8B57]/25 rounded-2xl text-xs text-[#2E8B57] space-y-1.5">
                   <div className="flex items-center gap-2 font-bold">
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{saveSuccessMessage}</span>
                   </div>
                   {riskDeltaInfo && (
-                    <div className="text-[11px] text-[#05603A]">
+                    <div className="text-[11px] text-[#2E8B57]">
                       Updated Risk Score: <strong>{riskDeltaInfo.currentRisk} / 100 ({riskDeltaInfo.currentLevel})</strong>
                     </div>
                   )}
@@ -451,12 +451,12 @@ export default function FieldVerificationView({
 
               {/* Field Verification Entry Form */}
               <form onSubmit={handleSaveVerification} className="gov-card p-5 space-y-5">
-                <div className="flex items-center justify-between border-b border-[#EAECF0] pb-3">
-                  <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider text-[#1F2933]">
-                    <ClipboardCheck className="w-4 h-4 text-[#183B56]" />
+                <div className="flex items-center justify-between border-b border-[#E8E4DC] pb-3">
+                  <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider text-[#050505]">
+                    <ClipboardCheck className="w-4 h-4 text-[#4B3C32]" />
                     <span>Record On-Ground Field Evidence</span>
                   </div>
-                  <span className="text-[11px] text-[#667085]">
+                  <span className="text-[11px] text-[#5E5E5D]">
                     Officer: <strong>FIELD_OFFICER_01</strong>
                   </span>
                 </div>
@@ -464,10 +464,10 @@ export default function FieldVerificationView({
                 {/* 1. Verified Physical Progress % */}
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-xs">
-                    <label className="font-semibold text-[#1F2933]">
-                      Verified Physical Progress on Ground: <span className="text-[#183B56] font-bold text-sm">{progress}%</span>
+                    <label className="font-semibold text-[#050505]">
+                      Verified Physical Progress on Ground: <span className="text-[#4B3C32] font-bold text-sm">{progress}%</span>
                     </label>
-                    <span className="text-[11px] text-[#667085]">
+                    <span className="text-[11px] text-[#5E5E5D]">
                       Previously Recorded: {activeProject.physical_progress}%
                     </span>
                   </div>
@@ -480,7 +480,7 @@ export default function FieldVerificationView({
                       step="0.5"
                       value={progress}
                       onChange={(e) => setProgress(parseFloat(e.target.value))}
-                      className="flex-1 accent-[#183B56] cursor-pointer"
+                      className="flex-1 accent-[#4B3C32] cursor-pointer"
                     />
                     <input
                       type="number"
@@ -489,20 +489,20 @@ export default function FieldVerificationView({
                       step="0.5"
                       value={progress}
                       onChange={(e) => setProgress(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
-                      className="w-16 text-center font-bold text-xs py-1.5 border border-[#D0D5DD] rounded-md focus:outline-none focus:border-[#183B56]"
+                      className="w-16 text-center font-bold text-xs py-1.5 border border-[#E8E4DC] rounded-xl focus:outline-none focus:border-[#4B3C32]"
                     />
                   </div>
                 </div>
 
                 {/* 2. Verification Status */}
                 <div className="space-y-1.5 text-xs">
-                  <label className="font-semibold text-[#1F2933] block">
+                  <label className="font-semibold text-[#050505] block">
                     Field Verification Status Determination
                   </label>
                   <select
                     value={verificationStatus}
                     onChange={(e) => setVerificationStatus(e.target.value)}
-                    className="w-full bg-[#F9FAFB] text-xs font-medium text-[#1F2933] px-3 py-2 rounded-md border border-[#D0D5DD] focus:outline-none focus:border-[#183B56]"
+                    className="w-full bg-[#F7F7F1]/70 text-xs font-medium text-[#050505] px-3 py-2 rounded-xl border border-[#E8E4DC] focus:outline-none focus:border-[#4B3C32]"
                   >
                     <option value="FULLY_VERIFIED">Fully Verified — Physical Milestones Match Sanction</option>
                     <option value="PARTIALLY_VERIFIED">Partially Verified — Work In Progress Tracks Milestones</option>
@@ -512,14 +512,14 @@ export default function FieldVerificationView({
                 </div>
 
                 {/* 3. GPS Coordinates Capture */}
-                <div className="p-3 bg-[#F9FAFB] rounded-lg border border-[#EAECF0] space-y-2 text-xs">
+                <div className="p-3 bg-[#F7F7F1]/60 rounded-xl border border-[#E8E4DC] space-y-2 text-xs">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
-                      <span className="font-semibold text-[#1F2933] flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-[#183B56]" />
+                      <span className="font-semibold text-[#050505] flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-[#4B3C32]" />
                         <span>Site Geolocation Coordinates</span>
                       </span>
-                      <p className="text-[11px] text-[#667085]">
+                      <p className="text-[11px] text-[#5E5E5D] mt-0.5">
                         {latitude && longitude
                           ? `Lat: ${latitude}, Lon: ${longitude}`
                           : `Registered: ${activeProject.latitude || 'N/A'}, ${activeProject.longitude || 'N/A'}`}
@@ -532,13 +532,13 @@ export default function FieldVerificationView({
                       disabled={isCapturingGps}
                       className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1.5 self-start sm:self-auto"
                     >
-                      <MapPin className="w-3.5 h-3.5 text-[#183B56]" />
+                      <MapPin className="w-3.5 h-3.5 text-[#4B3C32]" />
                       <span>{isCapturingGps ? 'Locating GPS...' : 'Capture Current GPS'}</span>
                     </button>
                   </div>
 
                   {gpsError && (
-                    <div className="text-[11px] text-[#B54708] italic">
+                    <div className="text-[11px] text-[#916540] italic">
                       {gpsError}
                     </div>
                   )}
@@ -546,13 +546,13 @@ export default function FieldVerificationView({
 
                 {/* 4. Photographic Evidence */}
                 <div className="space-y-1.5 text-xs">
-                  <label className="font-semibold text-[#1F2933] block">
+                  <label className="font-semibold text-[#050505] block">
                     Geotagged Photographic Proof (Optional / Compressed for Offline)
                   </label>
                   
                   <div className="flex items-center gap-3">
                     <label className="btn-secondary py-2 px-3 text-xs flex items-center gap-2 cursor-pointer">
-                      <Camera className="w-4 h-4 text-[#667085]" />
+                      <Camera className="w-4 h-4 text-[#5E5E5D]" />
                       <span>Capture / Attach Photo</span>
                       <input
                         type="file"
@@ -568,7 +568,7 @@ export default function FieldVerificationView({
                         <img 
                           src={photoPreview} 
                           alt="Verification preview" 
-                          className="w-14 h-14 object-cover rounded-md border border-[#D0D5DD]"
+                          className="w-14 h-14 object-cover rounded-xl border border-[#E8E4DC]"
                         />
                         <button
                           type="button"
@@ -576,7 +576,7 @@ export default function FieldVerificationView({
                             setEvidencePhoto(null);
                             setPhotoPreview(null);
                           }}
-                          className="absolute -top-1.5 -right-1.5 bg-red-600 text-white rounded-full p-0.5"
+                          className="absolute -top-1.5 -right-1.5 bg-[#C94C4C] text-white rounded-full p-0.5"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -587,7 +587,7 @@ export default function FieldVerificationView({
 
                 {/* 5. Ground Inspection Remarks */}
                 <div className="space-y-1.5 text-xs">
-                  <label className="font-semibold text-[#1F2933] block">
+                  <label className="font-semibold text-[#050505] block">
                     Ground Inspection Observations & Remarks
                   </label>
                   <textarea
@@ -595,21 +595,21 @@ export default function FieldVerificationView({
                     placeholder="Enter on-site findings e.g. foundation laid, superstructure 50% complete, structural quality, contractor presence..."
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
-                    className="w-full bg-[#F9FAFB] text-xs text-[#1F2933] p-3 rounded-md border border-[#D0D5DD] focus:outline-none focus:border-[#183B56]"
+                    className="w-full bg-[#F7F7F1]/70 text-xs text-[#050505] p-3 rounded-xl border border-[#E8E4DC] focus:outline-none focus:border-[#4B3C32]"
                   />
                 </div>
 
                 {/* Save Toolbar */}
-                <div className="flex items-center justify-between pt-3 border-t border-[#EAECF0]">
-                  <div className="text-[11px] text-[#667085] flex items-center gap-1.5">
+                <div className="flex items-center justify-between pt-3 border-t border-[#E8E4DC]">
+                  <div className="text-[11px] text-[#5E5E5D] flex items-center gap-1.5">
                     {syncState.isOnline ? (
                       <>
-                        <span className="w-2 h-2 rounded-full bg-[#12B76A]" />
+                        <span className="w-2 h-2 rounded-full bg-[#2E8B57]" />
                         <span>Online: will sync immediately</span>
                       </>
                     ) : (
                       <>
-                        <span className="w-2 h-2 rounded-full bg-[#B54708]" />
+                        <span className="w-2 h-2 rounded-full bg-[#E6A23C]" />
                         <span>Offline: will queue in IndexedDB</span>
                       </>
                     )}
@@ -628,19 +628,19 @@ export default function FieldVerificationView({
 
               {/* Historical Verification Ledger */}
               <div className="gov-card p-5 space-y-3">
-                <div className="flex items-center justify-between border-b border-[#EAECF0] pb-2">
-                  <span className="font-bold text-xs uppercase tracking-wider text-[#1F2933]">
+                <div className="flex items-center justify-between border-b border-[#E8E4DC] pb-2">
+                  <span className="font-bold text-xs uppercase tracking-wider text-[#050505]">
                     Field Verification History ({historyRecords.length})
                   </span>
-                  <span className="text-[11px] text-[#667085]">
+                  <span className="text-[11px] text-[#5E5E5D]">
                     Work ID: {activeProject.work_id}
                   </span>
                 </div>
 
                 {loadingHistory ? (
-                  <div className="py-4 text-center text-xs text-[#667085]">Loading audit trail...</div>
+                  <div className="py-4 text-center text-xs text-[#5E5E5D]">Loading audit trail...</div>
                 ) : historyRecords.length === 0 ? (
-                  <div className="py-4 text-center text-xs text-[#667085]">
+                  <div className="py-4 text-center text-xs text-[#5E5E5D]">
                     No previous field verification recorded for this project.
                   </div>
                 ) : (
@@ -648,39 +648,39 @@ export default function FieldVerificationView({
                     {historyRecords.map((rec, idx) => (
                       <div
                         key={rec.verification_id || rec.operation_id || idx}
-                        className="p-3 rounded-lg border border-[#EAECF0] bg-[#F9FAFB] text-xs space-y-1.5"
+                        className="p-3.5 rounded-xl border border-[#E8E4DC] bg-[#F7F7F1]/50 text-xs space-y-1.5"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-[#1F2933]">
+                            <span className="font-bold text-[#050505]">
                               {new Date(rec.verified_at || rec.created_at).toLocaleDateString('en-IN', {
                                 day: 'numeric',
                                 month: 'short',
                                 year: 'numeric'
                               })}
                             </span>
-                            <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-[#ECFDF3] text-[#027A48]">
+                            <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[#2E8B57]/10 text-[#2E8B57] border border-[#2E8B57]/20">
                               Progress: {rec.progress}%
                             </span>
                           </div>
-                          <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                            rec.sync_status === 'synced' ? 'bg-[#ECFDF3] text-[#027A48]' : 'bg-[#FEF6EE] text-[#B54708]'
+                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-lg border ${
+                            rec.sync_status === 'synced' ? 'bg-[#2E8B57]/10 text-[#2E8B57] border-[#2E8B57]/20' : 'bg-[#E6A23C]/10 text-[#916540] border-[#E6A23C]/20'
                           }`}>
                             {rec.sync_status || 'Synced'}
                           </span>
                         </div>
 
-                        <div className="text-[#475467] text-[11px]">
+                        <div className="text-[#5E5E5D] text-[11px]">
                           <strong>Status:</strong> {rec.verification_status} · <strong>Officer:</strong> {rec.user_id}
                         </div>
 
                         {rec.remarks && (
-                          <div className="text-[11px] text-[#1F2933] italic bg-white p-2 rounded border border-[#EAECF0]">
+                          <div className="text-[11px] text-[#050505] italic bg-white p-2 rounded-lg border border-[#E8E4DC]">
                             "{rec.remarks}"
                           </div>
                         )}
 
-                        <div className="flex items-center justify-between text-[10px] text-[#98A2B3] pt-1">
+                        <div className="flex items-center justify-between text-[10px] text-[#5E5E5D] pt-1">
                           <span>Location Captured: {rec.latitude && rec.longitude ? `Yes (${rec.latitude}, ${rec.longitude})` : 'No'}</span>
                           <span>Ref: {rec.verification_id || rec.operation_id}</span>
                         </div>
@@ -691,7 +691,7 @@ export default function FieldVerificationView({
               </div>
             </>
           ) : (
-            <div className="gov-card p-12 text-center text-xs text-[#667085]">
+            <div className="gov-card p-12 text-center text-xs text-[#5E5E5D]">
               Select a project from the left registry to start field verification.
             </div>
           )}

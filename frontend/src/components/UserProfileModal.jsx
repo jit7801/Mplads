@@ -71,27 +71,27 @@ export default function UserProfileModal({
       onClick={onClose}
     >
       <div 
-        className="bg-white border border-[#E4E7EC] rounded-xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95"
+        className="bg-white border border-[#E8E4DC] rounded-2xl w-full max-w-md shadow-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E4E7EC] bg-[#F9FAFB]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E8E4DC] bg-[#F7F7F1]/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#183B56] text-white flex items-center justify-center font-semibold text-xs">
+            <div className="w-8 h-8 rounded-full bg-[#4B3C32] text-white flex items-center justify-center font-semibold text-xs shadow-xs">
               <User className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#1F2933]">
+              <h3 className="text-sm font-bold text-[#050505]">
                 Nodal Authority Profile
               </h3>
-              <p className="text-[11px] text-[#667085]">
+              <p className="text-[11px] text-[#5E5E5D]">
                 Active authenticated governance credential
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#667085] hover:text-[#1F2933] hover:bg-[#EAECF0]"
+            className="p-1.5 rounded-lg text-[#5E5E5D] hover:text-[#050505] hover:bg-[#E8E4DC]/40 transition-colors"
             aria-label="Close profile"
           >
             <X className="w-4 h-4" />
@@ -100,31 +100,31 @@ export default function UserProfileModal({
 
         {/* Profile Card Body */}
         <div className="p-5 space-y-4">
-          <div className="p-4 rounded-lg bg-[#F9FAFB] border border-[#EAECF0] space-y-3">
+          <div className="p-4 rounded-xl bg-[#F7F7F1]/60 border border-[#E8E4DC] space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <span className="text-[10px] font-bold text-[#183B56] uppercase tracking-wider bg-white px-2 py-0.5 rounded border border-[#E4E7EC]">
+                <span className="text-[10px] font-bold text-[#4B3C32] uppercase tracking-wider bg-white px-2 py-0.5 rounded-lg border border-[#E8E4DC]">
                   {current.badge}
                 </span>
-                <h4 className="text-sm font-bold text-[#1F2933] mt-2">
+                <h4 className="text-sm font-bold text-[#050505] mt-2">
                   {current.title}
                 </h4>
-                <p className="text-xs text-[#667085] mt-0.5">
+                <p className="text-xs text-[#5E5E5D] mt-0.5">
                   {current.office}
                 </p>
               </div>
-              <div className="p-2 rounded-lg bg-white border border-[#E4E7EC] text-[#183B56]">
+              <div className="p-2.5 rounded-xl bg-white border border-[#E8E4DC] text-[#4B3C32] shadow-xs">
                 <RoleIcon className="w-5 h-5" />
               </div>
             </div>
 
-            <div className="pt-2 border-t border-[#EAECF0] space-y-1 text-xs text-[#475467]">
+            <div className="pt-2 border-t border-[#E8E4DC] space-y-1 text-xs text-[#5E5E5D]">
               <div className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-[#98A2B3] shrink-0" />
+                <MapPin className="w-3.5 h-3.5 text-[#C8BFB3] shrink-0" />
                 <span>{current.jurisdiction}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#487A5E] shrink-0" />
+                <ShieldCheck className="w-3.5 h-3.5 text-[#2E8B57] shrink-0" />
                 <span>Statutory Authority: {current.level}</span>
               </div>
             </div>
@@ -132,7 +132,7 @@ export default function UserProfileModal({
 
           {/* Quick Role Switcher Buttons */}
           <div>
-            <span className="text-[11px] font-semibold text-[#667085] uppercase tracking-wider block mb-2">
+            <span className="text-[11px] font-semibold text-[#5E5E5D] uppercase tracking-wider block mb-2">
               Switch Administrative Role
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
@@ -150,10 +150,10 @@ export default function UserProfileModal({
                     addToast(`Switched active view to: ${r.label}`, 'success');
                     onClose();
                   }}
-                  className={`p-2 rounded-md text-left transition-colors border ${
+                  className={`p-2.5 rounded-xl text-left transition-all border ${
                     currentRole === r.id
-                      ? 'bg-[#183B56] text-white border-[#183B56] font-semibold'
-                      : 'bg-white text-[#475467] border-[#D0D5DD] hover:bg-[#F9FAFB]'
+                      ? 'bg-[#4B3C32] text-white border-[#4B3C32] font-semibold shadow-xs'
+                      : 'bg-white text-[#5E5E5D] border-[#E8E4DC] hover:bg-[#F7F7F1]'
                   }`}
                 >
                   <span className="truncate block">{r.label}</span>
@@ -163,7 +163,7 @@ export default function UserProfileModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-2 border-t border-[#E4E7EC] flex items-center justify-between gap-2">
+          <div className="pt-2 border-t border-[#E8E4DC] flex items-center justify-between gap-2">
             <button
               onClick={handleResetSession}
               className="btn-secondary text-xs flex items-center gap-1.5 py-1.5"

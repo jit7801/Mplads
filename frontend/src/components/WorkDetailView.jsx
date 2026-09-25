@@ -156,37 +156,37 @@ export default function WorkDetailView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#183B56] hover:text-[#112A3E] transition-colors py-1.5 px-2.5 rounded-md hover:bg-[#F2F4F7] self-start"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#4B3C32] hover:text-[#050505] transition-colors py-2 px-3 rounded-xl hover:bg-[#F7F7F1] self-start"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Risk Works Registry</span>
         </button>
 
         {dossier && (
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
             <button
               onClick={handlePrintNotice}
-              className="btn-secondary flex items-center gap-1.5 py-1.5 text-xs font-medium"
+              className="btn-secondary flex items-center gap-1.5 py-2 px-3.5 text-xs font-medium rounded-xl hover:bg-[#F7F7F1]"
               title="Print formal statutory inspection notice"
             >
-              <Printer className="w-3.5 h-3.5 text-[#667085]" />
+              <Printer className="w-3.5 h-3.5 text-[#AA896C]" />
               <span>Print Notice</span>
             </button>
 
             {onViewOnMap && (
               <button
                 onClick={() => onViewOnMap(dossier.work_id)}
-                className="btn-secondary flex items-center gap-1.5 py-1.5 text-xs font-medium"
+                className="btn-secondary flex items-center gap-1.5 py-2 px-3.5 text-xs font-medium rounded-xl hover:bg-[#F7F7F1]"
                 title="View on Risk Map"
               >
-                <Map className="w-3.5 h-3.5 text-[#667085]" />
+                <Map className="w-3.5 h-3.5 text-[#AA896C]" />
                 <span>Map</span>
               </button>
             )}
 
             <button
               onClick={() => setIsActionModalOpen(true)}
-              className="btn-primary flex items-center gap-1.5 py-1.5 text-xs font-medium"
+              className="btn-primary flex items-center gap-1.5 py-2 px-3.5 text-xs font-medium rounded-xl"
             >
               <ShieldAlert className="w-3.5 h-3.5" />
               <span>Take Administrative Action</span>
@@ -196,93 +196,93 @@ export default function WorkDetailView({
       </div>
 
       {loading ? (
-        <div className="gov-card p-16 text-center text-[#667085]">
-          <div className="inline-block w-6 h-6 border-2 border-[#183B56] border-t-transparent rounded-full animate-spin mb-3" />
+        <div className="gov-card rounded-2xl p-16 text-center text-[#5E5E5D] border border-[#E8E4DC]">
+          <div className="inline-block w-6 h-6 border-2 border-[#4B3C32] border-t-transparent rounded-full animate-spin mb-3" />
           <p className="text-xs font-medium">Loading work risk intelligence dossier...</p>
         </div>
       ) : error ? (
-        <div className="gov-card p-8 text-center text-[#B85C5C]">
-          <AlertCircle className="w-8 h-8 mx-auto mb-2" />
+        <div className="gov-card rounded-2xl p-8 text-center text-[#C94C4C] border border-[#FADCDA]">
+          <AlertCircle className="w-8 h-8 mx-auto mb-2 text-[#C94C4C]" />
           <p className="text-xs font-medium">Error: {error}</p>
         </div>
       ) : dossier ? (
         <>
           {/* Main Top Header Card */}
-          <div className="gov-card p-5 sm:p-6">
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div className="gov-card rounded-2xl p-5 sm:p-6 border border-[#E8E4DC] shadow-xs bg-white">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
               
-              <div className="space-y-2 max-w-2xl">
+              <div className="space-y-2.5 max-w-2xl">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-[#183B56] bg-[#F2F4F7] px-2 py-0.5 rounded border border-[#E4E7EC]">
+                  <span className="font-mono text-xs font-bold text-[#4B3C32] bg-[#F2F0EB] px-2.5 py-0.5 rounded-lg border border-[#E8E4DC]">
                     {dossier.work_id}
                   </span>
-                  <span className="text-xs text-[#667085]">·</span>
-                  <span className="text-xs font-medium text-[#475467]">
+                  <span className="text-xs text-[#C8BFB3]">·</span>
+                  <span className="text-xs font-medium text-[#5E5E5D]">
                     {dossier.work_category}
                   </span>
-                  <span className="text-xs text-[#667085]">·</span>
-                  <span className="text-xs font-medium text-[#475467]">
-                    Status: <strong className="text-[#1F2933]">{dossier.status || 'IN_PROGRESS'}</strong>
+                  <span className="text-xs text-[#C8BFB3]">·</span>
+                  <span className="text-xs font-medium text-[#5E5E5D]">
+                    Status: <strong className="text-[#050505]">{dossier.status || 'IN_PROGRESS'}</strong>
                   </span>
                 </div>
 
-                <h1 className="text-lg sm:text-xl font-bold text-[#1F2933] leading-snug">
+                <h1 className="text-lg sm:text-xl font-bold text-[#050505] leading-snug tracking-tight">
                   {dossier.work_title}
                 </h1>
 
-                <div className="flex flex-wrap items-center gap-4 text-xs text-[#667085] pt-1">
-                  <span className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#98A2B3]" />
+                <div className="flex flex-wrap items-center gap-4 text-xs text-[#5E5E5D] pt-1">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <MapPin className="w-3.5 h-3.5 text-[#AA896C]" />
                     {dossier.village || dossier.ward ? `${dossier.village || dossier.ward}, ` : ''}{dossier.district}, {dossier.state}
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-[#98A2B3]" />
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <Building2 className="w-3.5 h-3.5 text-[#AA896C]" />
                     Agency: {dossier.implementing_agency || 'District Rural Development Agency'}
                   </span>
                 </div>
 
                 {(dossier.mp_name || dossier.constituency || dossier.block || dossier.house) && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2.5 mt-1 border-t border-[#F2F4F7] text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 mt-1.5 border-t border-[#F2EFEB] text-xs">
                     {dossier.mp_name && (
                       <div>
-                        <span className="text-[#667085] block text-[10px]">MP Name:</span>
-                        <strong className="text-[#1F2933]">{dossier.mp_name}</strong>
+                        <span className="text-[#8E8D8A] block text-[10px]">MP Name:</span>
+                        <strong className="text-[#050505]">{dossier.mp_name}</strong>
                       </div>
                     )}
                     {dossier.constituency && (
                       <div>
-                        <span className="text-[#667085] block text-[10px]">Constituency:</span>
-                        <strong className="text-[#1F2933]">{dossier.constituency}</strong>
+                        <span className="text-[#8E8D8A] block text-[10px]">Constituency:</span>
+                        <strong className="text-[#050505]">{dossier.constituency}</strong>
                       </div>
                     )}
                     {dossier.block && (
                       <div>
-                        <span className="text-[#667085] block text-[10px]">Block:</span>
-                        <strong className="text-[#1F2933]">{dossier.block}</strong>
+                        <span className="text-[#8E8D8A] block text-[10px]">Block:</span>
+                        <strong className="text-[#050505]">{dossier.block}</strong>
                       </div>
                     )}
                     {dossier.village && (
                       <div>
-                        <span className="text-[#667085] block text-[10px]">Village:</span>
-                        <strong className="text-[#1F2933]">{dossier.village}</strong>
+                        <span className="text-[#8E8D8A] block text-[10px]">Village:</span>
+                        <strong className="text-[#050505]">{dossier.village}</strong>
                       </div>
                     )}
                     {dossier.sanctioned_amount != null && (
                       <div>
-                        <span className="text-[#667085] block text-[10px]">Allocation Amount:</span>
-                        <strong className="text-[#1F2933]">₹{Number(dossier.sanctioned_amount).toLocaleString('en-IN')}</strong>
+                        <span className="text-[#8E8D8A] block text-[10px]">Allocation Amount:</span>
+                        <strong className="text-[#050505]">₹{Number(dossier.sanctioned_amount).toLocaleString('en-IN')}</strong>
                       </div>
                     )}
                     {dossier.house && (
                       <div>
-                        <span className="text-[#667085] block text-[10px]">House:</span>
-                        <strong className="text-[#1F2933]">{dossier.house}</strong>
+                        <span className="text-[#8E8D8A] block text-[10px]">House:</span>
+                        <strong className="text-[#050505]">{dossier.house}</strong>
                       </div>
                     )}
                     {dossier.ida_approval && (
                       <div>
-                        <span className="text-[#667085] block text-[10px]">IDA Approval:</span>
-                        <strong className="text-[#1F2933]">{dossier.ida_approval}</strong>
+                        <span className="text-[#8E8D8A] block text-[10px]">IDA Approval:</span>
+                        <strong className="text-[#050505]">{dossier.ida_approval}</strong>
                       </div>
                     )}
                   </div>
@@ -290,11 +290,11 @@ export default function WorkDetailView({
               </div>
 
               {/* Risk Badge & Score */}
-              <div className="flex md:flex-col items-end justify-between md:justify-center gap-2 border-t md:border-t-0 md:border-l border-[#E4E7EC] pt-3 md:pt-0 md:pl-6 shrink-0">
+              <div className="flex md:flex-col items-end justify-between md:justify-center gap-2.5 border-t md:border-t-0 md:border-l border-[#E8E4DC] pt-3 md:pt-0 md:pl-6 shrink-0">
                 <div className="text-left md:text-right">
-                  <span className="text-[11px] text-[#667085] block">Unified Risk Score</span>
-                  <div className="text-2xl font-bold text-[#1F2933]">
-                    {dossier.overall_risk_score} <span className="text-xs font-normal text-[#667085]">/ 100</span>
+                  <span className="text-[11px] text-[#8E8D8A] block">Unified Risk Score</span>
+                  <div className="text-2xl sm:text-3xl font-bold text-[#050505] tracking-tight">
+                    {dossier.overall_risk_score} <span className="text-xs font-normal text-[#8E8D8A]">/ 100</span>
                   </div>
                 </div>
                 <RiskBadge score={dossier.overall_risk_score} level={dossier.risk_level} size="lg" />
@@ -304,101 +304,100 @@ export default function WorkDetailView({
           </div>
 
           {/* Risk Summary Component Breakdown */}
-          <div className="gov-card p-4 sm:p-5">
-            <h3 className="text-xs font-bold text-[#1F2933] uppercase tracking-wider mb-3">
+          <div className="gov-card rounded-2xl p-5 sm:p-6 border border-[#E8E4DC] shadow-xs bg-white">
+            <h3 className="text-xs font-bold text-[#050505] uppercase tracking-wider mb-3.5">
               Explainable Risk Components (4-Pillar Model)
             </h3>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
               
               {/* Financial Risk */}
-              <div className="p-3 rounded-lg bg-[#F9FAFB] border border-[#EAECF0]">
-                <div className="flex items-center justify-between text-xs text-[#667085] mb-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F5] border border-[#E8E4DC]">
+                <div className="flex items-center justify-between text-xs text-[#5E5E5D] mb-1">
                   <span className="truncate">Financial / Cost</span>
-                  <TrendingUp className="w-3.5 h-3.5 text-[#C8754D]" />
+                  <TrendingUp className="w-3.5 h-3.5 text-[#AA896C]" />
                 </div>
-                <div className="text-lg font-bold text-[#1F2933]">
+                <div className="text-lg font-bold text-[#050505]">
                   {dossier.component_breakdown?.financial_risk?.score ?? 0}
-                  <span className="text-xs font-normal text-[#667085]"> / {dossier.component_breakdown?.financial_risk?.max ?? 30}</span>
+                  <span className="text-xs font-normal text-[#8E8D8A]"> / {dossier.component_breakdown?.financial_risk?.max ?? 30}</span>
                 </div>
-                <div className="w-full bg-[#E4E7EC] h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="w-full bg-[#E8E4DC] h-1.5 rounded-full mt-2 overflow-hidden">
                   <div 
                     style={{ width: `${((dossier.component_breakdown?.financial_risk?.score ?? 0) / 30) * 100}%` }}
-                    className="h-full bg-[#C8754D] rounded-full"
+                    className="h-full bg-[#AA896C] rounded-full"
                   />
                 </div>
               </div>
 
               {/* Delay Risk */}
-              <div className="p-3 rounded-lg bg-[#F9FAFB] border border-[#EAECF0]">
-                <div className="flex items-center justify-between text-xs text-[#667085] mb-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F5] border border-[#E8E4DC]">
+                <div className="flex items-center justify-between text-xs text-[#5E5E5D] mb-1">
                   <span className="truncate">Delay / Stagnation</span>
-                  <Clock className="w-3.5 h-3.5 text-[#C49A4A]" />
+                  <Clock className="w-3.5 h-3.5 text-[#E6A23C]" />
                 </div>
-                <div className="text-lg font-bold text-[#1F2933]">
+                <div className="text-lg font-bold text-[#050505]">
                   {dossier.component_breakdown?.delay_risk?.score ?? 0}
-                  <span className="text-xs font-normal text-[#667085]"> / {dossier.component_breakdown?.delay_risk?.max ?? 30}</span>
+                  <span className="text-xs font-normal text-[#8E8D8A]"> / {dossier.component_breakdown?.delay_risk?.max ?? 30}</span>
                 </div>
-                <div className="w-full bg-[#E4E7EC] h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="w-full bg-[#E8E4DC] h-1.5 rounded-full mt-2 overflow-hidden">
                   <div 
                     style={{ width: `${((dossier.component_breakdown?.delay_risk?.score ?? 0) / 30) * 100}%` }}
-                    className="h-full bg-[#C49A4A] rounded-full"
+                    className="h-full bg-[#E6A23C] rounded-full"
                   />
                 </div>
               </div>
 
               {/* Duplicate Risk */}
-              <div className="p-3 rounded-lg bg-[#F9FAFB] border border-[#EAECF0]">
-                <div className="flex items-center justify-between text-xs text-[#667085] mb-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F5] border border-[#E8E4DC]">
+                <div className="flex items-center justify-between text-xs text-[#5E5E5D] mb-1">
                   <span className="truncate">Duplicate / Overlap</span>
-                  <Copy className="w-3.5 h-3.5 text-[#2F6F8F]" />
+                  <Copy className="w-3.5 h-3.5 text-[#916540]" />
                 </div>
-                <div className="text-lg font-bold text-[#1F2933]">
+                <div className="text-lg font-bold text-[#050505]">
                   {dossier.component_breakdown?.duplicate_risk?.score ?? 0}
-                  <span className="text-xs font-normal text-[#667085]"> / {dossier.component_breakdown?.duplicate_risk?.max ?? 25}</span>
+                  <span className="text-xs font-normal text-[#8E8D8A]"> / {dossier.component_breakdown?.duplicate_risk?.max ?? 25}</span>
                 </div>
-                <div className="w-full bg-[#E4E7EC] h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="w-full bg-[#E8E4DC] h-1.5 rounded-full mt-2 overflow-hidden">
                   <div 
                     style={{ width: `${((dossier.component_breakdown?.duplicate_risk?.score ?? 0) / 25) * 100}%` }}
-                    className="h-full bg-[#2F6F8F] rounded-full"
+                    className="h-full bg-[#916540] rounded-full"
                   />
                 </div>
               </div>
 
               {/* Compliance Risk */}
-              <div className="p-3 rounded-lg bg-[#F9FAFB] border border-[#EAECF0]">
-                <div className="flex items-center justify-between text-xs text-[#667085] mb-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F5] border border-[#E8E4DC]">
+                <div className="flex items-center justify-between text-xs text-[#5E5E5D] mb-1">
                   <span className="truncate">Compliance Deficit</span>
-                  <FileCheck className="w-3.5 h-3.5 text-[#B85C5C]" />
+                  <FileCheck className="w-3.5 h-3.5 text-[#C94C4C]" />
                 </div>
-                <div className="text-lg font-bold text-[#1F2933]">
+                <div className="text-lg font-bold text-[#050505]">
                   {dossier.component_breakdown?.compliance_risk?.score ?? 0}
-                  <span className="text-xs font-normal text-[#667085]"> / {dossier.component_breakdown?.compliance_risk?.max ?? 15}</span>
+                  <span className="text-xs font-normal text-[#8E8D8A]"> / {dossier.component_breakdown?.compliance_risk?.max ?? 15}</span>
                 </div>
-                <div className="w-full bg-[#E4E7EC] h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="w-full bg-[#E8E4DC] h-1.5 rounded-full mt-2 overflow-hidden">
                   <div 
                     style={{ width: `${((dossier.component_breakdown?.compliance_risk?.score ?? 0) / 15) * 100}%` }}
-                    className="h-full bg-[#B85C5C] rounded-full"
+                    className="h-full bg-[#C94C4C] rounded-full"
                   />
                 </div>
               </div>
 
             </div>
           </div>
-
           {/* Evidence Checklist & Ground Justifications */}
-          <div className="gov-card p-5 space-y-3">
-            <h3 className="text-xs font-bold text-[#1F2933] uppercase tracking-wider">
+          <div className="gov-card rounded-2xl p-5 sm:p-6 space-y-3.5 border border-[#E8E4DC] shadow-xs bg-white">
+            <h3 className="text-xs font-bold text-[#050505] uppercase tracking-wider">
               Empirical Evidence Checklist
             </h3>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {(dossier.evidence_summary || []).map((evidence, idx) => (
                 <div 
                   key={idx}
-                  className="p-3 rounded-lg bg-[#FDF2F2] border border-[#F8D7DA] flex items-start gap-3"
+                  className="p-3.5 rounded-xl bg-[#FDF4F4] border border-[#FADCDA] flex items-start gap-3"
                 >
-                  <AlertCircle className="w-4 h-4 text-[#B85C5C] shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 text-[#C94C4C] shrink-0 mt-0.5" />
                   <span className="text-xs text-[#7A271A] font-medium leading-relaxed">
                     {evidence}
                   </span>
@@ -411,36 +410,36 @@ export default function WorkDetailView({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* Financial vs Physical Progress Divergence */}
-            <div className="gov-card p-5 space-y-4">
-              <h3 className="text-xs font-bold text-[#1F2933] uppercase tracking-wider">
+            <div className="gov-card rounded-2xl p-5 sm:p-6 space-y-4 border border-[#E8E4DC] shadow-xs bg-white">
+              <h3 className="text-xs font-bold text-[#050505] uppercase tracking-wider">
                 Progress Divergence Analysis
               </h3>
 
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-[#667085]">Financial Expenditure Disbursed</span>
-                    <strong className="text-[#1F2933]">{dossier.financial_progress}% (₹{((dossier.actual_expenditure || 0) / 100000).toFixed(2)}L)</strong>
+                  <div className="flex justify-between text-xs mb-1.5">
+                    <span className="text-[#5E5E5D]">Financial Expenditure Disbursed</span>
+                    <strong className="text-[#050505] font-semibold">{dossier.financial_progress}% (₹{((dossier.actual_expenditure || 0) / 100000).toFixed(2)}L)</strong>
                   </div>
-                  <div className="w-full bg-[#E4E7EC] h-2 rounded-full overflow-hidden">
-                    <div style={{ width: `${dossier.financial_progress}%` }} className="h-full bg-[#C8754D]" />
+                  <div className="w-full bg-[#E8E4DC] h-2 rounded-full overflow-hidden">
+                    <div style={{ width: `${dossier.financial_progress}%` }} className="h-full bg-[#AA896C] rounded-full" />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-[#667085]">Physically Built Assets</span>
-                    <strong className="text-[#1F2933]">{dossier.physical_progress}%</strong>
+                  <div className="flex justify-between text-xs mb-1.5">
+                    <span className="text-[#5E5E5D]">Physically Built Assets</span>
+                    <strong className="text-[#050505] font-semibold">{dossier.physical_progress}%</strong>
                   </div>
-                  <div className="w-full bg-[#E4E7EC] h-2 rounded-full overflow-hidden">
-                    <div style={{ width: `${dossier.physical_progress}%` }} className="h-full bg-[#487A5E]" />
+                  <div className="w-full bg-[#E8E4DC] h-2 rounded-full overflow-hidden">
+                    <div style={{ width: `${dossier.physical_progress}%` }} className="h-full bg-[#2E8B57] rounded-full" />
                   </div>
                 </div>
 
                 {dossier.financial_progress > dossier.physical_progress && (
-                  <div className="p-2.5 rounded bg-[#FEF9EE] border border-[#F9ECCB] text-xs text-[#7A4D05] flex items-center justify-between">
+                  <div className="p-3 rounded-xl bg-[#FEF8ED] border border-[#F8E5C4] text-xs text-[#7A4D05] flex items-center justify-between">
                     <span>Progress Mismatch Divergence:</span>
-                    <strong className="text-[#B58532] font-mono">
+                    <strong className="text-[#B87D28] font-mono">
                       +{dossier.financial_progress - dossier.physical_progress} percentage points
                     </strong>
                   </div>
@@ -449,32 +448,32 @@ export default function WorkDetailView({
             </div>
 
             {/* Cost Anomaly vs Peer Cohort */}
-            <div className="gov-card p-5 space-y-4">
-              <h3 className="text-xs font-bold text-[#1F2933] uppercase tracking-wider">
+            <div className="gov-card rounded-2xl p-5 sm:p-6 space-y-4 border border-[#E8E4DC] shadow-xs bg-white">
+              <h3 className="text-xs font-bold text-[#050505] uppercase tracking-wider">
                 Peer Cost Baselining (DSR Comparison)
               </h3>
 
-              <div className="space-y-3">
-                <div className="flex justify-between text-xs border-b border-[#EAECF0] pb-2">
-                  <span className="text-[#667085]">This Work's Sanctioned Cost:</span>
-                  <strong className="text-[#1F2933]">₹{((dossier.sanctioned_amount || 0) / 100000).toFixed(2)} Lakhs</strong>
+              <div className="space-y-3.5">
+                <div className="flex justify-between text-xs border-b border-[#F2EFEB] pb-2.5">
+                  <span className="text-[#5E5E5D]">This Work's Sanctioned Cost:</span>
+                  <strong className="text-[#050505] font-semibold">₹{((dossier.sanctioned_amount || 0) / 100000).toFixed(2)} Lakhs</strong>
                 </div>
 
-                <div className="flex justify-between text-xs border-b border-[#EAECF0] pb-2">
-                  <span className="text-[#667085]">Peer Cohort Median Rate:</span>
-                  <strong className="text-[#1F2933]">
+                <div className="flex justify-between text-xs border-b border-[#F2EFEB] pb-2.5">
+                  <span className="text-[#5E5E5D]">Peer Cohort Median Rate:</span>
+                  <strong className="text-[#050505] font-semibold">
                     ₹{((dossier.cost_evaluation?.cohort_median || dossier.sanctioned_amount) / 100000).toFixed(2)} Lakhs
                   </strong>
                 </div>
 
-                <div className="p-2.5 rounded bg-[#F9FAFB] border border-[#EAECF0] text-xs space-y-1">
+                <div className="p-3 rounded-xl bg-[#FAF9F5] border border-[#E8E4DC] text-xs space-y-1">
                   <div className="flex justify-between">
-                    <span className="text-[#667085]">Variance vs Peer Median:</span>
-                    <strong className="text-[#B85C5C]">
+                    <span className="text-[#5E5E5D]">Variance vs Peer Median:</span>
+                    <strong className="text-[#C94C4C]">
                       {dossier.cost_evaluation?.cost_ratio ? `+${Math.round((dossier.cost_evaluation.cost_ratio - 1) * 100)}%` : 'Standard'}
                     </strong>
                   </div>
-                  <p className="text-[11px] text-[#667085]">
+                  <p className="text-[11px] text-[#8E8D8A]">
                     Peer cohort: {dossier.work_category} projects in {dossier.district}
                   </p>
                 </div>
@@ -484,26 +483,26 @@ export default function WorkDetailView({
           </div>
 
           {/* Statutory Administrative Directive */}
-          <div className="gov-card p-5 border-l-4 border-l-[#183B56] space-y-3">
-            <h3 className="text-xs font-bold text-[#1F2933] uppercase tracking-wider">
+          <div className="gov-card rounded-2xl p-5 sm:p-6 border-l-4 border-l-[#4B3C32] border border-[#E8E4DC] shadow-xs space-y-3.5 bg-white">
+            <h3 className="text-xs font-bold text-[#050505] uppercase tracking-wider">
               Statutory Administrative Directive
             </h3>
-            <p className="text-xs text-[#1F2933] font-medium leading-relaxed bg-[#F9FAFB] p-3 rounded-lg border border-[#EAECF0]">
+            <p className="text-xs text-[#050505] font-medium leading-relaxed bg-[#FAF9F5] p-3.5 rounded-xl border border-[#E8E4DC]">
               {dossier.recommended_action}
             </p>
 
-            <div className="flex flex-wrap items-center gap-2 pt-2">
+            <div className="flex flex-wrap items-center gap-2.5 pt-2">
               <button
                 onClick={handlePrintNotice}
-                className="btn-secondary text-xs flex items-center gap-1.5"
+                className="btn-secondary text-xs rounded-xl flex items-center gap-1.5 hover:bg-[#F7F7F1]"
               >
-                <Printer className="w-3.5 h-3.5 text-[#667085]" />
+                <Printer className="w-3.5 h-3.5 text-[#AA896C]" />
                 <span>Export Field Verification Notice</span>
               </button>
 
               <button
                 onClick={() => onOpenFieldVerification && onOpenFieldVerification(dossier.work_id)}
-                className="btn-primary text-xs flex items-center gap-1.5 bg-[#027A48] hover:bg-[#05603A]"
+                className="btn-primary text-xs rounded-xl flex items-center gap-1.5 bg-[#2E8B57] hover:bg-[#257247]"
               >
                 <ClipboardCheck className="w-3.5 h-3.5" />
                 <span>Conduct Field Verification</span>
@@ -511,71 +510,71 @@ export default function WorkDetailView({
 
               <button
                 onClick={() => setIsActionModalOpen(true)}
-                className="btn-secondary text-xs flex items-center gap-1.5"
+                className="btn-secondary text-xs rounded-xl flex items-center gap-1.5 hover:bg-[#F7F7F1]"
               >
-                <ShieldAlert className="w-3.5 h-3.5 text-[#667085]" />
+                <ShieldAlert className="w-3.5 h-3.5 text-[#AA896C]" />
                 <span>Record Inspection Determination</span>
               </button>
             </div>
           </div>
 
           {/* Field Verification Audit History Section */}
-          <div className="gov-card p-5 space-y-3">
-            <div className="flex items-center justify-between border-b border-[#EAECF0] pb-2">
+          <div className="gov-card rounded-2xl p-5 sm:p-6 space-y-3.5 border border-[#E8E4DC] shadow-xs bg-white">
+            <div className="flex items-center justify-between border-b border-[#F2EFEB] pb-3">
               <div className="flex items-center gap-2">
-                <ClipboardCheck className="w-4 h-4 text-[#183B56]" />
-                <h3 className="text-xs font-bold text-[#1F2933] uppercase tracking-wider">
+                <ClipboardCheck className="w-4 h-4 text-[#4B3C32]" />
+                <h3 className="text-xs font-bold text-[#050505] uppercase tracking-wider">
                   Field Verification History ({verifications.length})
                 </h3>
               </div>
               <button
                 onClick={() => onOpenFieldVerification && onOpenFieldVerification(dossier.work_id)}
-                className="text-xs font-semibold text-[#183B56] hover:underline"
+                className="text-xs font-semibold text-[#4B3C32] hover:underline"
               >
                 + New Spot Inspection
               </button>
             </div>
 
             {verifications.length === 0 ? (
-              <p className="text-xs text-[#667085] py-2">
+              <p className="text-xs text-[#5E5E5D] py-2">
                 No offline or online spot verification recorded yet. Use the button above to record ground progress.
               </p>
             ) : (
-              <div className="space-y-2 pt-1">
+              <div className="space-y-2.5 pt-1">
                 {verifications.map((v, i) => (
                   <div
                     key={v.verification_id || v.operation_id || i}
-                    className="p-3 rounded-lg border border-[#EAECF0] bg-[#F9FAFB] text-xs space-y-1.5"
+                    className="p-3.5 rounded-xl border border-[#E8E4DC] bg-[#FAF9F5] text-xs space-y-2"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-[#1F2933]">
+                        <span className="font-bold text-[#050505]">
                           {new Date(v.verified_at || v.created_at).toLocaleDateString('en-IN', {
                             day: 'numeric',
                             month: 'short',
                             year: 'numeric'
                           })}
                         </span>
-                        <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-[#ECFDF3] text-[#027A48]">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EEF7F2] text-[#2E8B57] border border-[#D1E8DC]">
                           Verified: {v.progress}%
                         </span>
                       </div>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-[#ECFDF3] text-[#027A48]">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#EEF7F2] text-[#2E8B57] border border-[#D1E8DC]">
                         {v.sync_status || 'Synced'}
                       </span>
                     </div>
 
-                    <div className="text-[#475467] text-[11px]">
+                    <div className="text-[#5E5E5D] text-[11px]">
                       <strong>Status:</strong> {v.verification_status} · <strong>Officer:</strong> {v.user_id}
                     </div>
 
                     {v.remarks && (
-                      <p className="text-[11px] text-[#1F2933] italic bg-white p-2 rounded border border-[#EAECF0]">
+                      <p className="text-[11px] text-[#050505] italic bg-white p-2.5 rounded-lg border border-[#E8E4DC]">
                         "{v.remarks}"
                       </p>
                     )}
 
-                    <div className="flex items-center justify-between text-[10px] text-[#98A2B3]">
+                    <div className="flex items-center justify-between text-[10px] text-[#8E8D8A]">
                       <span>Location: {v.latitude && v.longitude ? `${v.latitude}, ${v.longitude}` : 'Manual Entry'}</span>
                       <span>Ref: {v.verification_id || v.operation_id}</span>
                     </div>
@@ -590,39 +589,39 @@ export default function WorkDetailView({
       {/* Action Determination Modal */}
       {isActionModalOpen && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-3 sm:p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-3 sm:p-4"
           onClick={() => setIsActionModalOpen(false)}
         >
           <div 
-            className="bg-white border border-[#E4E7EC] rounded-xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95"
+            className="bg-white border border-[#E8E4DC] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#E4E7EC] bg-[#F9FAFB]">
+            <div className="flex items-center justify-between px-6 py-4.5 border-b border-[#E8E4DC] bg-[#FAF9F5]">
               <div>
-                <h3 className="text-sm font-bold text-[#1F2933]">
+                <h3 className="text-sm font-bold text-[#050505] tracking-tight">
                   Record Field Verification Action
                 </h3>
-                <p className="text-[11px] text-[#667085]">
+                <p className="text-[11px] text-[#5E5E5D] mt-0.5">
                   Work ID: {dossier?.work_id} · {dossier?.district}
                 </p>
               </div>
               <button
                 onClick={() => setIsActionModalOpen(false)}
-                className="p-1 rounded text-[#667085] hover:text-[#1F2933]"
+                className="p-1.5 rounded-lg text-[#5E5E5D] hover:text-[#050505] hover:bg-[#F2F0EB] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleRecordAction} className="p-5 space-y-4 text-xs">
+            <form onSubmit={handleRecordAction} className="p-6 space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-[#1F2933] mb-1.5">
+                <label className="block font-semibold text-[#050505] mb-1.5">
                   Administrative Directive Type
                 </label>
                 <select
                   value={selectedAction}
                   onChange={(e) => setSelectedAction(e.target.value)}
-                  className="w-full bg-[#F9FAFB] text-xs text-[#1F2933] px-3 py-2 rounded-md border border-[#D0D5DD] focus:outline-none focus:border-[#183B56]"
+                  className="w-full bg-[#F7F7F1] hover:bg-[#F2F0EB] text-xs text-[#050505] px-3.5 py-2.5 rounded-xl border border-[#D8D2C7] focus:outline-none focus:border-[#4B3C32] focus:bg-white cursor-pointer transition-colors"
                 >
                   <option value="SCHEDULE_INSPECTION">Order Physical Spot Inspection by Assistant Engineer (7 Days)</option>
                   <option value="WITHHOLD_DISBURSEMENT">Withhold Interim Fund Tranche Pending Measurement Book Audit</option>
@@ -633,7 +632,7 @@ export default function WorkDetailView({
               </div>
 
               <div>
-                <label className="block font-semibold text-[#1F2933] mb-1.5">
+                <label className="block font-semibold text-[#050505] mb-1.5">
                   Nodal Authority Audit Notes / Instructions
                 </label>
                 <textarea
@@ -641,22 +640,22 @@ export default function WorkDetailView({
                   placeholder="Enter specific instructions for the inspecting officer or executive engineer..."
                   value={inspectorNotes}
                   onChange={(e) => setInspectorNotes(e.target.value)}
-                  className="w-full bg-[#F9FAFB] text-xs text-[#1F2933] p-3 rounded-md border border-[#D0D5DD] focus:outline-none focus:border-[#183B56]"
+                  className="w-full bg-[#F7F7F1] text-xs text-[#050505] p-3.5 rounded-xl border border-[#D8D2C7] focus:outline-none focus:border-[#4B3C32] focus:bg-white transition-colors"
                 />
               </div>
 
-              <div className="pt-2 border-t border-[#EAECF0] flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-[#F2EFEB] flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setIsActionModalOpen(false)}
-                  className="btn-secondary text-xs"
+                  className="btn-secondary text-xs rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingAction}
-                  className="btn-primary text-xs flex items-center gap-1.5"
+                  className="btn-primary text-xs rounded-xl flex items-center gap-1.5"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{isSubmittingAction ? 'Recording...' : 'Issue Statutory Order'}</span>

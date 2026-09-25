@@ -167,6 +167,14 @@ function AppContent() {
       setInitialRiskFilter('CRITICAL');
       navigateTab('WORK_LIST');
       addToast('Filtered works registry by Critical Risk (Score 80+).', 'info');
+    } else if (kpiId === 'MEDIUM') {
+      setInitialRiskFilter('MEDIUM');
+      navigateTab('WORK_LIST');
+      addToast('Filtered works registry by Medium Risk (Score 30–59).', 'info');
+    } else if (kpiId === 'LOW') {
+      setInitialRiskFilter('LOW');
+      navigateTab('WORK_LIST');
+      addToast('Filtered works registry by Low Risk (Score < 30).', 'info');
     } else if (kpiId === 'STAGNATION') {
       navigateTab('DELAY_STAGNATION');
     } else if (kpiId === 'DUPLICATE') {
@@ -240,7 +248,7 @@ function AppContent() {
   }, [currentRole, scopedWorks, scopedDuplicatePairs, summary]);
 
   return (
-    <div className="flex h-screen bg-[#F7F8F6] text-[#1F2933] overflow-hidden">
+    <div className="flex h-screen bg-[#F7F7F1] text-[#050505] overflow-hidden font-sans">
       
       {/* Collapsible Left Sidebar (Desktop & Mobile Drawer) */}
       <Sidebar
@@ -273,19 +281,19 @@ function AppContent() {
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-6 py-4 sm:py-6">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-6 sm:py-8">
+          <div className="max-w-7xl mx-auto space-y-7">
             
             {/* Backend Connection Warning */}
             {error && (
-              <div className="gov-card p-4 border-[#F8D7DA] bg-[#FDF2F2] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2.5 text-[#B85C5C]">
+              <div className="gov-card p-4 border-[#FADCDA] bg-[#FDF4F4] rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5 text-[#C94C4C] font-medium">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{error}</span>
                 </div>
                 <button
                   onClick={loadData}
-                  className="btn-secondary py-1 px-3 text-xs text-[#B85C5C] border-[#F8D7DA] hover:bg-white self-start sm:self-auto"
+                  className="btn-secondary py-1.5 px-3 text-xs text-[#C94C4C] border-[#FADCDA] hover:bg-white self-start sm:self-auto rounded-xl"
                 >
                   <RefreshCw className="w-3.5 h-3.5 inline mr-1" />
                   Retry Connection
@@ -295,7 +303,7 @@ function AppContent() {
 
             {/* Loading Skeleton */}
             {loading ? (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <CardSkeleton />
                 <TableSkeleton rows={8} />
               </div>
@@ -330,14 +338,14 @@ function AppContent() {
 
                 {/* 1. Risk Command Center (Overview) */}
                 {currentTab === 'COMMAND_CENTER' && (
-                  <div className="space-y-6">
+                  <div className="space-y-7">
                     {/* Header Intro */}
                     <div>
-                      <h1 className="text-xl font-bold text-[#1F2933] tracking-tight">
+                      <h1 className="text-xl sm:text-2xl font-bold text-[#050505] tracking-tight">
                         Risk Command Center
                       </h1>
-                      <p className="text-xs text-[#667085]">
-                        Monitor high-risk infrastructure anomalies, progress gaps, and duplicate works across constituencies.
+                      <p className="text-xs sm:text-sm text-[#5E5E5D] mt-1">
+                        Early warning risk intelligence, empirical cost anomaly auditing, and physical progress monitoring across constituencies.
                       </p>
                     </div>
 
@@ -360,6 +368,7 @@ function AppContent() {
                       onSelectWork={handleSelectWork}
                       initialRiskFilter={initialRiskFilter}
                       totalAll={summary?.total_works || 60880}
+                      summary={scopedSummary || summary}
                     />
                   </div>
                 )}
@@ -371,6 +380,7 @@ function AppContent() {
                     onSelectWork={handleSelectWork}
                     initialRiskFilter={initialRiskFilter}
                     totalAll={summary?.total_works || 60880}
+                    summary={scopedSummary || summary}
                   />
                 )}
 

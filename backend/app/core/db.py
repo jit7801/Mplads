@@ -468,7 +468,16 @@ def get_work_by_id_from_db(work_id: str, db_path: str = DB_PATH) -> Optional[Dic
         return row_to_dict(row)
     return None
 
-def compute_summary_from_db(state: Optional[str] = None, district: Optional[str] = None, db_path: str = DB_PATH) -> Dict[str, Any]:
+def compute_summary_from_db(
+    state: Optional[str] = None,
+    district: Optional[str] = None,
+    db_path: str = DB_PATH,
+    dup_pairs_count: int = 0,
+    evaluation_date: Optional[str] = None,
+    data_provenance: Optional[str] = None,
+    is_demo_mode: bool = False,
+    **kwargs: Any
+) -> Dict[str, Any]:
     """Calculates summary KPIs from SQLite using SQL aggregation."""
     conn = get_connection(db_path)
     cur = conn.cursor()
@@ -506,4 +515,8 @@ def compute_summary_from_db(state: Optional[str] = None, district: Optional[str]
     res = dict(row)
     res["total_sanctioned_amount"] = round(float(res["total_sanctioned_amount"] or 0.0), 2)
     res["flagged_amount"] = round(float(res["flagged_amount"] or 0.0), 2)
+    res["duplicate_candidates_count"] = dup_pairs_count
+    res["evaluation_date"] = evaluation_date
+    res["data_provenance"] = data_provenance
+    res["is_demo_mode"] = is_demo_mode
     return res

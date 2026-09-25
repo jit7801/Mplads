@@ -13,34 +13,34 @@ export default function PriorityTable({ works, onSelectWork, onViewAll }) {
   const displayedWorks = showAllPriority ? priorityWorks : priorityWorks.slice(0, 6);
 
   const getSignalBadge = (signal) => {
-    let color = 'bg-[#F2F4F7] text-[#344054] border-[#EAECF0]';
-    if (signal === 'Cost Anomaly') color = 'bg-[#FEF9EE] text-[#B58532] border-[#F9ECCB]';
-    if (signal === 'Delay & Stagnation') color = 'bg-[#FDF6F0] text-[#C8754D] border-[#FCE8DB]';
-    if (signal === 'Duplicate Overlap') color = 'bg-[#F0F5F8] text-[#2F6F8F] border-[#D7E6EE]';
-    if (signal === 'Compliance Deficit') color = 'bg-[#FDF2F2] text-[#B85C5C] border-[#F8D7DA]';
+    let color = 'bg-[#F2F0EB] text-[#5E5E5D] border-[#E8E4DC]';
+    if (signal === 'Cost Anomaly') color = 'bg-[#FEF8ED] text-[#B87D28] border-[#F8E5C4]';
+    if (signal === 'Delay & Stagnation') color = 'bg-[#F7F2ED] text-[#916540] border-[#E8DFD5]';
+    if (signal === 'Duplicate Overlap') color = 'bg-[#F5EFE9] text-[#AA896C] border-[#E5DAD0]';
+    if (signal === 'Compliance Deficit') color = 'bg-[#FDF2F2] text-[#C94C4C] border-[#F8D2D2]';
 
     return (
-      <span className={`inline-block px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-medium border whitespace-nowrap ${color}`}>
+      <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium border whitespace-nowrap ${color}`}>
         {signal}
       </span>
     );
   };
 
   return (
-    <div className="gov-card overflow-hidden mb-6">
+    <div className="gov-card rounded-2xl overflow-hidden mb-6 border border-[#E8E4DC] shadow-xs">
       
       {/* Header */}
-      <div className="px-4 sm:px-5 py-3.5 border-b border-[#E4E7EC] flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white">
+      <div className="px-5 sm:px-6 py-4 border-b border-[#E8E4DC] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-bold text-[#1F2933]">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-sm sm:text-base font-bold text-[#050505] tracking-tight">
               Today's Priority Works
             </h2>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#FDF2F2] text-[#B85C5C] border border-[#F8D7DA]">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FDF2F2] text-[#C94C4C] border border-[#F8D2D2]">
               {priorityWorks.length} Flagged
             </span>
           </div>
-          <p className="text-[11px] sm:text-xs text-[#667085]">
+          <p className="text-xs text-[#5E5E5D] mt-0.5">
             Works with highest empirical divergence requiring immediate administrative verification.
           </p>
         </div>
@@ -48,10 +48,10 @@ export default function PriorityTable({ works, onSelectWork, onViewAll }) {
         {onViewAll && (
           <button
             onClick={onViewAll}
-            className="text-xs font-semibold text-[#183B56] hover:text-[#112A3E] flex items-center gap-1 transition-colors self-start sm:self-center py-1 px-2 rounded-md hover:bg-[#F2F4F7]"
+            className="btn-secondary text-xs font-medium text-[#4B3C32] hover:text-[#050505] flex items-center gap-1.5 transition-colors self-start sm:self-center py-1.5 px-3 rounded-xl hover:bg-[#F7F7F1]"
           >
             <span>Full Registry ({works.length})</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ChevronRight className="w-3.5 h-3.5 text-[#8E8D8A]" />
           </button>
         )}
       </div>
@@ -72,7 +72,7 @@ export default function PriorityTable({ works, onSelectWork, onViewAll }) {
           <tbody>
             {displayedWorks.length === 0 ? (
               <tr>
-                <td colSpan="6" className="text-center py-8 text-[#667085]">
+                <td colSpan="6" className="text-center py-10 text-[#5E5E5D] text-xs">
                   No high-risk works currently pending priority review.
                 </td>
               </tr>
@@ -81,14 +81,14 @@ export default function PriorityTable({ works, onSelectWork, onViewAll }) {
                 <tr
                   key={work.work_id}
                   onClick={() => onSelectWork(work.work_id)}
-                  className="cursor-pointer hover:bg-[#F9FAFB] transition-colors"
+                  className="cursor-pointer hover:bg-[#FAF9F6] transition-colors"
                 >
                   {/* Priority Level */}
                   <td>
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                       work.overall_risk_score >= 80 
-                        ? 'bg-[#FDF2F2] text-[#B85C5C] border-[#F8D7DA]' 
-                        : 'bg-[#FEF9EE] text-[#C8754D] border-[#F9ECCB]'
+                        ? 'bg-[#FDF2F2] text-[#C94C4C] border-[#F8D2D2]' 
+                        : 'bg-[#FEF8ED] text-[#B87D28] border-[#F8E5C4]'
                     }`}>
                       {work.overall_risk_score >= 80 ? 'Critical' : 'High'}
                     </span>
@@ -96,18 +96,18 @@ export default function PriorityTable({ works, onSelectWork, onViewAll }) {
 
                   {/* Work Title & ID */}
                   <td className="max-w-[280px]">
-                    <div className="font-semibold text-[#1F2933] hover:text-[#183B56] transition-colors truncate">
+                    <div className="font-semibold text-[#050505] hover:text-[#4B3C32] transition-colors truncate">
                       {work.work_title}
                     </div>
-                    <div className="text-[10px] sm:text-[11px] text-[#667085] font-mono mt-0.5 truncate">
+                    <div className="text-[10px] sm:text-[11px] text-[#5E5E5D] font-mono mt-0.5 truncate">
                       {work.work_id} · {work.work_category}
                     </div>
                   </td>
 
                   {/* Location */}
                   <td className="whitespace-nowrap">
-                    <div className="text-[#1F2933] font-medium">{work.district}</div>
-                    <div className="text-[10px] text-[#667085]">{work.state}</div>
+                    <div className="text-[#050505] font-medium">{work.district}</div>
+                    <div className="text-[10px] text-[#5E5E5D]">{work.state}</div>
                   </td>
 
                   {/* Risk Score */}
@@ -127,9 +127,9 @@ export default function PriorityTable({ works, onSelectWork, onViewAll }) {
                         e.stopPropagation();
                         onSelectWork(work.work_id);
                       }}
-                      className="btn-secondary py-1 px-2.5 text-xs font-medium inline-flex items-center gap-1"
+                      className="btn-secondary py-1 px-3 text-xs font-medium rounded-xl inline-flex items-center gap-1.5 hover:bg-[#F7F7F1]"
                     >
-                      <Eye className="w-3 h-3 text-[#667085]" />
+                      <Eye className="w-3.5 h-3.5 text-[#8E8D8A]" />
                       <span>Review</span>
                     </button>
                   </td>
@@ -142,10 +142,10 @@ export default function PriorityTable({ works, onSelectWork, onViewAll }) {
 
       {/* Expand / View All Footer */}
       {priorityWorks.length > 6 && (
-        <div className="p-2.5 bg-[#F9FAFB] border-t border-[#E4E7EC] text-center">
+        <div className="p-3 bg-[#FAF9F5] border-t border-[#E8E4DC] text-center">
           <button
             onClick={() => setShowAllPriority(!showAllPriority)}
-            className="text-xs font-medium text-[#183B56] hover:text-[#112A3E] inline-flex items-center gap-1.5 py-1 px-3 rounded hover:bg-white transition-colors"
+            className="text-xs font-medium text-[#4B3C32] hover:text-[#050505] inline-flex items-center gap-1.5 py-1.5 px-3.5 rounded-xl hover:bg-white transition-all shadow-2xs"
           >
             {showAllPriority ? (
               <>

@@ -62,10 +62,10 @@ export default function ReportsView({ works = [], onSelectWork }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-[#1F2933] tracking-tight">
+          <h2 className="text-lg font-bold text-[#050505] tracking-tight">
             Inspection Orders & Audit Registry
           </h2>
-          <p className="text-xs text-[#667085]">
+          <p className="text-xs text-[#5E5E5D]">
             Formal statutory verification directives issued for high-risk and critical infrastructure projects.
           </p>
         </div>
@@ -76,7 +76,7 @@ export default function ReportsView({ works = [], onSelectWork }) {
             className="btn-secondary flex items-center gap-1.5 py-1.5 text-xs font-medium"
             title="Download CSV report of active directives"
           >
-            <Download className="w-3.5 h-3.5 text-[#667085]" />
+            <Download className="w-3.5 h-3.5 text-[#5E5E5D]" />
             <span>Export (CSV)</span>
           </button>
 
@@ -95,20 +95,20 @@ export default function ReportsView({ works = [], onSelectWork }) {
       <div className="gov-card p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="flex flex-1 items-center gap-2 max-w-md">
           <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 text-[#98A2B3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-[#5E5E5D] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search by order ID, title, agency, district..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#F9FAFB] text-xs text-[#1F2933] pl-9 pr-3 py-2 rounded-md border border-[#D0D5DD] focus:outline-none focus:border-[#183B56]"
+              className="w-full bg-[#F7F7F1]/70 text-xs text-[#050505] pl-9 pr-3 py-2 rounded-xl border border-[#E8E4DC] focus:outline-none focus:border-[#4B3C32] focus:bg-[#FFFFFF] transition-all"
             />
           </div>
 
           <select
             value={selectedRisk}
             onChange={(e) => setSelectedRisk(e.target.value)}
-            className="bg-[#F9FAFB] text-[#1F2933] text-xs font-medium px-2.5 py-2 rounded-md border border-[#D0D5DD] focus:outline-none cursor-pointer"
+            className="bg-[#F7F7F1]/70 text-[#050505] text-xs font-medium px-2.5 py-2 rounded-xl border border-[#E8E4DC] focus:outline-none focus:border-[#4B3C32] focus:bg-[#FFFFFF] cursor-pointer transition-all"
           >
             <option value="">All Risk Tiers</option>
             <option value="CRITICAL">Critical Only</option>
@@ -116,15 +116,15 @@ export default function ReportsView({ works = [], onSelectWork }) {
           </select>
         </div>
 
-        <div className="flex items-center justify-between sm:justify-end gap-3 text-xs text-[#667085]">
-          <span>Found <strong>{flaggedWorks.length}</strong> active directives</span>
+        <div className="flex items-center justify-between sm:justify-end gap-3 text-xs text-[#5E5E5D]">
+          <span>Found <strong className="text-[#050505]">{flaggedWorks.length}</strong> active directives</span>
           {(search || selectedRisk) && (
             <button
               onClick={() => {
                 setSearch('');
                 setSelectedRisk('');
               }}
-              className="text-[#B85C5C] hover:text-[#912018] font-semibold text-xs flex items-center gap-1"
+              className="text-[#C94C4C] hover:text-[#C94C4C]/80 font-semibold text-xs flex items-center gap-1 transition-colors"
             >
               <FilterX className="w-3.5 h-3.5" />
               <span>Reset</span>
@@ -135,11 +135,11 @@ export default function ReportsView({ works = [], onSelectWork }) {
 
       {/* Orders Table */}
       <div className="gov-card overflow-hidden">
-        <div className="p-3.5 border-b border-[#E4E7EC] bg-[#F9FAFB] flex items-center justify-between text-xs">
-          <span className="font-bold text-[#1F2933]">
+        <div className="p-3.5 border-b border-[#E8E4DC] bg-[#F7F7F1]/60 flex items-center justify-between text-xs">
+          <span className="font-bold text-[#050505]">
             Active Field Verification Directives ({flaggedWorks.length})
           </span>
-          <span className="text-[#667085]">
+          <span className="text-[#5E5E5D]">
             District Magistrate Oversight · Jaipur Division
           </span>
         </div>
@@ -159,10 +159,10 @@ export default function ReportsView({ works = [], onSelectWork }) {
             <tbody>
               {flaggedWorks.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="py-12 text-center text-[#667085]">
-                    <AlertCircle className="w-8 h-8 text-[#98A2B3] mx-auto mb-2" />
-                    <div className="font-semibold text-sm text-[#1F2933]">No directives matching search criteria</div>
-                    <p className="text-xs text-[#667085] mt-1">Try resetting search filters.</p>
+                  <td colSpan="6" className="py-12 text-center text-[#5E5E5D]">
+                    <AlertCircle className="w-8 h-8 text-[#C8BFB3] mx-auto mb-2" />
+                    <div className="font-semibold text-sm text-[#050505]">No directives matching search criteria</div>
+                    <p className="text-xs text-[#5E5E5D] mt-1">Try resetting search filters.</p>
                   </td>
                 </tr>
               ) : (
@@ -170,34 +170,34 @@ export default function ReportsView({ works = [], onSelectWork }) {
                   <tr
                     key={work.work_id}
                     onClick={() => onSelectWork(work.work_id)}
-                    className="cursor-pointer hover:bg-[#F9FAFB] transition-colors"
+                    className="cursor-pointer hover:bg-[#F7F7F1]/50 transition-colors"
                   >
-                    <td className="whitespace-nowrap font-mono text-xs text-[#1F2933] font-semibold">
+                    <td className="whitespace-nowrap font-mono text-xs text-[#050505] font-semibold">
                       <div>{work.work_id}</div>
-                      <div className="text-[10px] text-[#667085] font-normal">
+                      <div className="text-[10px] text-[#5E5E5D] font-normal">
                         Ref: INQ/{work.district || 'JP'}/{work.work_id}
                       </div>
                     </td>
 
                     <td className="max-w-[260px]">
-                      <div className="font-bold text-[#1F2933] hover:text-[#183B56] transition-colors truncate">
+                      <div className="font-bold text-[#050505] hover:text-[#4B3C32] transition-colors truncate">
                         {work.work_title}
                       </div>
-                      <div className="text-[11px] text-[#667085] truncate mt-0.5">
+                      <div className="text-[11px] text-[#5E5E5D] truncate mt-0.5">
                         Agency: {work.implementing_agency}
                       </div>
                     </td>
 
-                    <td className="whitespace-nowrap text-xs text-[#475467]">
-                      <div className="font-medium text-[#1F2933]">{work.district}</div>
-                      <div className="text-[10px] text-[#667085]">{work.state}</div>
+                    <td className="whitespace-nowrap text-xs text-[#5E5E5D]">
+                      <div className="font-medium text-[#050505]">{work.district}</div>
+                      <div className="text-[10px] text-[#5E5E5D]">{work.state}</div>
                     </td>
 
                     <td className="whitespace-nowrap">
                       <RiskBadge score={work.overall_risk_score} level={work.risk_level} />
                     </td>
 
-                    <td className="max-w-[300px] text-xs text-[#475467]">
+                    <td className="max-w-[300px] text-xs text-[#5E5E5D]">
                       <p className="line-clamp-2 leading-relaxed">
                         {work.recommended_action}
                       </p>
@@ -211,7 +211,7 @@ export default function ReportsView({ works = [], onSelectWork }) {
                         }}
                         className="btn-secondary py-1 px-2.5 text-xs font-medium inline-flex items-center gap-1"
                       >
-                        <Eye className="w-3 h-3 text-[#667085]" />
+                        <Eye className="w-3 h-3 text-[#5E5E5D]" />
                         <span>View Notice</span>
                       </button>
                     </td>

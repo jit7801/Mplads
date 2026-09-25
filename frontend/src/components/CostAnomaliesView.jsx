@@ -101,10 +101,10 @@ export default function CostAnomaliesView({ works = [], onSelectWork }) {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-[#1F2933] tracking-tight">
+          <h2 className="text-lg font-bold text-[#050505] tracking-tight">
             Cost Anomaly Intelligence
           </h2>
-          <p className="text-xs text-[#667085]">
+          <p className="text-xs text-[#5E5E5D]">
             Identify works whose cost significantly exceeds comparable like-for-like projects within the same peer group.
           </p>
         </div>
@@ -113,16 +113,16 @@ export default function CostAnomaliesView({ works = [], onSelectWork }) {
           onClick={exportCSV}
           className="btn-secondary flex items-center gap-1.5 py-1.5 text-xs font-medium self-start sm:self-auto"
         >
-          <Download className="w-3.5 h-3.5 text-[#667085]" />
+          <Download className="w-3.5 h-3.5 text-[#5E5E5D]" />
           <span>Export Anomalies (CSV)</span>
         </button>
       </div>
 
       {/* Explanatory Context Box */}
-      <div className="gov-card p-4 bg-[#F9FAFB] border-[#E4E7EC] flex items-start gap-3">
-        <Info className="w-4 h-4 text-[#2F6F8F] shrink-0 mt-0.5" />
-        <div className="text-xs text-[#475467] leading-relaxed">
-          <strong className="text-[#1F2933]">Methodology:</strong> Works are stratified into fine-grained peer cohorts (<em>Work Category × District</em>). 
+      <div className="gov-card p-4 bg-[#F7F7F1]/80 border-[#E8E4DC] flex items-start gap-3">
+        <Info className="w-4 h-4 text-[#4B3C32] shrink-0 mt-0.5" />
+        <div className="text-xs text-[#5E5E5D] leading-relaxed">
+          <strong className="text-[#050505]">Methodology:</strong> Works are stratified into fine-grained peer cohorts (<em>Work Category × District</em>). 
           The system calculates the robust Median and Median Absolute Deviation (MAD) of historical sanctioned rates. Works with Modified Z-scores &gt; 2.5 or cost ratios &gt; 1.45× peer median are surfaced for rate validation against District Schedule of Rates (DSR).
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function CostAnomaliesView({ works = [], onSelectWork }) {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           {/* Search */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-[#98A2B3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-[#5E5E5D] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search cost outlier works..."
@@ -141,12 +141,12 @@ export default function CostAnomaliesView({ works = [], onSelectWork }) {
                 setSearch(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-[#F9FAFB] text-xs text-[#1F2933] pl-9 pr-7 py-2 rounded-md border border-[#D0D5DD] focus:outline-none focus:border-[#183B56]"
+              className="w-full bg-[#F7F7F1]/70 text-xs text-[#050505] pl-9 pr-7 py-2 rounded-xl border border-[#E8E4DC] focus:outline-none focus:border-[#4B3C32] focus:bg-[#FFFFFF] transition-all"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#98A2B3] hover:text-[#1F2933]"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5E5E5D] hover:text-[#050505]"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -160,7 +160,7 @@ export default function CostAnomaliesView({ works = [], onSelectWork }) {
               setSelectedDistrict(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full bg-[#F9FAFB] text-xs text-[#1F2933] px-2.5 py-2 rounded-md border border-[#D0D5DD] focus:outline-none focus:border-[#183B56] cursor-pointer"
+            className="w-full bg-[#F7F7F1]/70 text-xs text-[#050505] px-2.5 py-2 rounded-xl border border-[#E8E4DC] focus:outline-none focus:border-[#4B3C32] focus:bg-[#FFFFFF] cursor-pointer transition-all"
           >
             <option value="">All Districts</option>
             {districts.map((d) => (
@@ -175,7 +175,7 @@ export default function CostAnomaliesView({ works = [], onSelectWork }) {
               setSelectedCategory(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full bg-[#F9FAFB] text-xs text-[#1F2933] px-2.5 py-2 rounded-md border border-[#D0D5DD] focus:outline-none focus:border-[#183B56] cursor-pointer"
+            className="w-full bg-[#F7F7F1]/70 text-xs text-[#050505] px-2.5 py-2 rounded-xl border border-[#E8E4DC] focus:outline-none focus:border-[#4B3C32] focus:bg-[#FFFFFF] cursor-pointer transition-all"
           >
             <option value="">All Categories</option>
             {categories.map((c) => (
@@ -184,12 +184,12 @@ export default function CostAnomaliesView({ works = [], onSelectWork }) {
           </select>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-[#EAECF0] text-xs text-[#667085]">
-          <span>Found <strong className="text-[#1F2933]">{costAnomalies.length}</strong> cost anomalies</span>
+        <div className="flex items-center justify-between pt-2 border-t border-[#E8E4DC] text-xs text-[#5E5E5D]">
+          <span>Found <strong className="text-[#050505]">{costAnomalies.length}</strong> cost anomalies</span>
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="text-[#B85C5C] hover:text-[#912018] flex items-center gap-1 font-semibold text-xs"
+              className="text-[#C94C4C] hover:text-[#C94C4C]/80 flex items-center gap-1 font-semibold text-xs transition-colors"
             >
               <FilterX className="w-3.5 h-3.5" />
               <span>Reset Filters</span>
@@ -217,10 +217,10 @@ export default function CostAnomaliesView({ works = [], onSelectWork }) {
             <tbody>
               {paginatedAnomalies.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="py-12 text-center text-[#667085]">
-                    <AlertCircle className="w-8 h-8 text-[#98A2B3] mx-auto mb-2" />
-                    <div className="font-semibold text-sm text-[#1F2933]">No cost anomalies found</div>
-                    <p className="text-xs text-[#667085] mt-1">Try selecting a different district or category.</p>
+                  <td colSpan="8" className="py-12 text-center text-[#5E5E5D]">
+                    <AlertCircle className="w-8 h-8 text-[#C8BFB3] mx-auto mb-2" />
+                    <div className="font-semibold text-sm text-[#050505]">No cost anomalies found</div>
+                    <p className="text-xs text-[#5E5E5D] mt-1">Try selecting a different district or category.</p>
                   </td>
                 </tr>
               ) : (
@@ -234,36 +234,36 @@ export default function CostAnomaliesView({ works = [], onSelectWork }) {
                     <tr
                       key={work.work_id}
                       onClick={() => onSelectWork(work.work_id)}
-                      className="cursor-pointer hover:bg-[#F9FAFB] transition-colors"
+                      className="cursor-pointer hover:bg-[#F7F7F1]/50 transition-colors"
                     >
                       <td className="max-w-[260px]">
-                        <div className="font-semibold text-[#1F2933] hover:text-[#183B56] transition-colors truncate">
+                        <div className="font-semibold text-[#050505] hover:text-[#4B3C32] transition-colors truncate">
                           {work.work_title}
                         </div>
-                        <div className="text-[10px] text-[#667085] font-mono mt-0.5">
+                        <div className="text-[10px] text-[#5E5E5D] font-mono mt-0.5">
                           {work.work_id}
                         </div>
                       </td>
 
                       <td className="whitespace-nowrap">
-                        <div className="text-[#1F2933] font-medium">{work.district}</div>
-                        <div className="text-[10px] text-[#667085]">{work.state}</div>
+                        <div className="text-[#050505] font-medium">{work.district}</div>
+                        <div className="text-[10px] text-[#5E5E5D]">{work.state}</div>
                       </td>
 
-                      <td className="whitespace-nowrap text-xs text-[#475467]">
+                      <td className="whitespace-nowrap text-xs text-[#5E5E5D]">
                         {work.work_category}
                       </td>
 
-                      <td className="whitespace-nowrap font-medium text-[#1F2933]">
+                      <td className="whitespace-nowrap font-medium text-[#050505]">
                         ₹{((work.sanctioned_amount || 0) / 100000).toFixed(2)}L
                       </td>
 
-                      <td className="whitespace-nowrap text-[#667085] font-medium">
+                      <td className="whitespace-nowrap text-[#5E5E5D] font-medium">
                         ₹{(median / 100000).toFixed(2)}L
                       </td>
 
                       <td className="whitespace-nowrap">
-                        <span className="font-semibold text-[#B58532] bg-[#FEF9EE] px-1.5 py-0.5 rounded border border-[#F9ECCB] text-xs">
+                        <span className="font-semibold text-[#916540] bg-[#916540]/10 px-2 py-0.5 rounded-lg border border-[#916540]/25 text-xs">
                           +{diffPct}%
                         </span>
                       </td>
@@ -280,7 +280,7 @@ export default function CostAnomaliesView({ works = [], onSelectWork }) {
                           }}
                           className="btn-secondary py-1 px-2.5 text-xs font-medium inline-flex items-center gap-1"
                         >
-                          <Eye className="w-3 h-3 text-[#667085]" />
+                          <Eye className="w-3 h-3 text-[#5E5E5D]" />
                           <span>Inspect</span>
                         </button>
                       </td>
@@ -296,8 +296,8 @@ export default function CostAnomaliesView({ works = [], onSelectWork }) {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="gov-card p-3 flex items-center justify-between gap-3 text-xs">
-          <span className="text-[#667085]">
-            Page <strong className="text-[#1F2933]">{currentPage}</strong> of <strong className="text-[#1F2933]">{totalPages}</strong>
+          <span className="text-[#5E5E5D]">
+            Page <strong className="text-[#050505]">{currentPage}</strong> of <strong className="text-[#050505]">{totalPages}</strong>
           </span>
 
           <div className="flex items-center gap-1">

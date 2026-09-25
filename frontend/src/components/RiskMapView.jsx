@@ -52,10 +52,10 @@ export default function RiskMapView({ works = [], onSelectWork }) {
   }, [validWorks, selectedRisk, selectedDistrict, selectedCategory]);
 
   const getMarkerColor = (score) => {
-    if (score >= 80) return '#B85C5C'; // Restrained Crimson
-    if (score >= 60) return '#C8754D'; // Restrained Terracotta
-    if (score >= 30) return '#C49A4A'; // Restrained Amber
-    return '#5F8D73'; // Restrained Sage Green
+    if (score >= 80) return '#C94C4C'; // Critical
+    if (score >= 60) return '#C94C4C'; // High
+    if (score >= 30) return '#E6A23C'; // Medium
+    return '#2E8B57'; // Low
   };
 
   const defaultCenter = [26.9124, 75.7873]; // Jaipur coordinates
@@ -75,32 +75,32 @@ export default function RiskMapView({ works = [], onSelectWork }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-[#1F2933] tracking-tight">
+          <h2 className="text-lg sm:text-xl font-bold text-[#050505] tracking-tight">
             Geospatial Risk Intelligence
           </h2>
-          <p className="text-xs text-[#667085]">
+          <p className="text-xs text-[#5E5E5D] mt-0.5">
             Spatial distribution of monitored works color-coded by empirical risk tier across constituencies.
           </p>
         </div>
 
         <button
           onClick={resetFilters}
-          className="btn-secondary flex items-center gap-1.5 py-1.5 text-xs font-medium self-start sm:self-auto"
+          className="btn-secondary flex items-center gap-1.5 py-2 px-3.5 text-xs font-medium rounded-xl hover:bg-[#F7F7F1] self-start sm:self-auto"
         >
-          <RotateCcw className="w-3.5 h-3.5 text-[#667085]" />
+          <RotateCcw className="w-3.5 h-3.5 text-[#AA896C]" />
           <span>Reset Map View</span>
         </button>
       </div>
 
       {/* Filter Bar */}
-      <div className="gov-card p-3 sm:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1 max-w-2xl">
+      <div className="gov-card rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border border-[#E8E4DC] shadow-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 flex-1 max-w-2xl">
           
           {/* Risk Filter */}
           <select
             value={selectedRisk}
             onChange={(e) => setSelectedRisk(e.target.value)}
-            className="w-full bg-[#F9FAFB] text-[#1F2933] text-xs font-medium rounded-md border border-[#D0D5DD] px-2.5 py-2 focus:outline-none focus:border-[#183B56] cursor-pointer"
+            className="w-full bg-[#F7F7F1] hover:bg-[#F2F0EB] text-[#050505] text-xs font-medium rounded-xl border border-[#D8D2C7] px-3 py-2.5 focus:outline-none focus:border-[#4B3C32] focus:bg-white cursor-pointer transition-colors"
           >
             <option value="ALL">All Risk Tiers</option>
             <option value="CRITICAL">Critical (80+)</option>
@@ -113,7 +113,7 @@ export default function RiskMapView({ works = [], onSelectWork }) {
           <select
             value={selectedDistrict}
             onChange={(e) => setSelectedDistrict(e.target.value)}
-            className="w-full bg-[#F9FAFB] text-[#1F2933] text-xs font-medium rounded-md border border-[#D0D5DD] px-2.5 py-2 focus:outline-none focus:border-[#183B56] cursor-pointer"
+            className="w-full bg-[#F7F7F1] hover:bg-[#F2F0EB] text-[#050505] text-xs font-medium rounded-xl border border-[#D8D2C7] px-3 py-2.5 focus:outline-none focus:border-[#4B3C32] focus:bg-white cursor-pointer transition-colors"
           >
             <option value="ALL">All Districts</option>
             {districts.map((d) => (
@@ -125,7 +125,7 @@ export default function RiskMapView({ works = [], onSelectWork }) {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full bg-[#F9FAFB] text-[#1F2933] text-xs font-medium rounded-md border border-[#D0D5DD] px-2.5 py-2 focus:outline-none focus:border-[#183B56] cursor-pointer"
+            className="w-full bg-[#F7F7F1] hover:bg-[#F2F0EB] text-[#050505] text-xs font-medium rounded-xl border border-[#D8D2C7] px-3 py-2.5 focus:outline-none focus:border-[#4B3C32] focus:bg-white cursor-pointer transition-colors"
           >
             <option value="ALL">All Categories</option>
             {categories.map((c) => (
@@ -136,20 +136,20 @@ export default function RiskMapView({ works = [], onSelectWork }) {
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap items-center gap-3 text-xs text-[#667085] pt-2 md:pt-0 border-t md:border-t-0 border-[#EAECF0]">
-          <span className="font-semibold text-[#1F2933]">{filtered.length} visible works</span>
-          <div className="flex items-center gap-2 text-[11px]">
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#B85C5C]" /> Critical
+        <div className="flex flex-wrap items-center gap-3 text-xs text-[#5E5E5D] pt-3 md:pt-0 border-t md:border-t-0 border-[#F2EFEB]">
+          <span className="font-semibold text-[#050505]">{filtered.length} visible works</span>
+          <div className="flex items-center gap-2.5 text-[11px]">
+            <span className="flex items-center gap-1 font-medium">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#C94C4C]" /> Critical
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#C8754D]" /> High
+            <span className="flex items-center gap-1 font-medium">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#C94C4C] opacity-80" /> High
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#C49A4A]" /> Medium
+            <span className="flex items-center gap-1 font-medium">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#E6A23C]" /> Medium
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#5F8D73]" /> Low
+            <span className="flex items-center gap-1 font-medium">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#2E8B57]" /> Low
             </span>
           </div>
         </div>
@@ -159,7 +159,7 @@ export default function RiskMapView({ works = [], onSelectWork }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         
         {/* Map View Container */}
-        <div className="lg:col-span-2 gov-card h-[380px] sm:h-[480px] lg:h-[540px] overflow-hidden relative z-0">
+        <div className="lg:col-span-2 gov-card rounded-2xl h-[380px] sm:h-[480px] lg:h-[540px] overflow-hidden relative z-0 border border-[#E8E4DC] shadow-xs">
           <MapContainer
             key={mapCenterKey}
             center={defaultCenter}
@@ -187,18 +187,18 @@ export default function RiskMapView({ works = [], onSelectWork }) {
                 }}
               >
                 <Popup>
-                  <div className="p-1 space-y-1.5 min-w-[210px] text-xs">
+                  <div className="p-1.5 space-y-2 min-w-[220px] text-xs">
                     <div className="flex items-center justify-between gap-1">
-                      <span className="font-mono text-[10px] text-[#667085]">{work.work_id}</span>
+                      <span className="font-mono text-[10px] text-[#8E8D8A]">{work.work_id}</span>
                       <RiskBadge score={work.overall_risk_score} level={work.risk_level} size="sm" />
                     </div>
-                    <div className="font-bold text-[#1F2933]">{work.work_title}</div>
-                    <div className="text-[11px] text-[#667085]">
+                    <div className="font-bold text-[#050505] leading-snug">{work.work_title}</div>
+                    <div className="text-[11px] text-[#5E5E5D]">
                       {work.district}, {work.state} · ₹{((work.sanctioned_amount || 0) / 100000).toFixed(2)}L
                     </div>
                     <button
                       onClick={() => onSelectWork(work.work_id)}
-                      className="btn-primary w-full py-1 text-xs font-semibold text-center mt-1"
+                      className="btn-primary w-full py-1.5 text-xs font-semibold text-center mt-1 rounded-xl"
                     >
                       Open Full Dossier
                     </button>
@@ -210,16 +210,16 @@ export default function RiskMapView({ works = [], onSelectWork }) {
         </div>
 
         {/* Selected Work Inspection Panel */}
-        <div className="gov-card p-4 sm:p-5 flex flex-col justify-between">
+        <div className="gov-card rounded-2xl p-5 border border-[#E8E4DC] shadow-xs flex flex-col justify-between bg-white">
           <div>
-            <div className="flex items-center justify-between pb-2 border-b border-[#E4E7EC] mb-3">
-              <h3 className="text-xs font-bold text-[#1F2933] uppercase tracking-wider">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E8E4DC] mb-3.5">
+              <h3 className="text-xs font-bold text-[#050505] uppercase tracking-wider">
                 Work Location Profile
               </h3>
               {activeWork && (
                 <button
                   onClick={() => setActiveWork(null)}
-                  className="text-[11px] text-[#667085] hover:text-[#1F2933]"
+                  className="text-[11px] font-medium text-[#5E5E5D] hover:text-[#050505] transition-colors"
                 >
                   Clear Selection
                 </button>
@@ -227,53 +227,53 @@ export default function RiskMapView({ works = [], onSelectWork }) {
             </div>
 
             {activeWork ? (
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="font-mono text-xs text-[#667085]">{activeWork.work_id}</span>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="font-mono text-xs text-[#8E8D8A]">{activeWork.work_id}</span>
                     <RiskBadge score={activeWork.overall_risk_score} level={activeWork.risk_level} />
                   </div>
-                  <h4 className="text-sm font-bold text-[#1F2933] leading-snug">
+                  <h4 className="text-sm font-bold text-[#050505] leading-snug">
                     {activeWork.work_title}
                   </h4>
-                  <p className="text-xs text-[#667085] mt-0.5">
+                  <p className="text-xs text-[#5E5E5D] mt-0.5">
                     {activeWork.district}, {activeWork.state}
                   </p>
                 </div>
 
-                <div className="space-y-2 text-xs text-[#475467] py-2.5 border-y border-[#E4E7EC]">
+                <div className="space-y-2 text-xs text-[#5E5E5D] py-3 border-y border-[#F2EFEB]">
                   <div className="flex justify-between">
-                    <span className="text-[#667085]">Category:</span>
-                    <span className="font-semibold text-[#1F2933]">{activeWork.work_category}</span>
+                    <span className="text-[#8E8D8A]">Category:</span>
+                    <span className="font-semibold text-[#050505]">{activeWork.work_category}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#667085]">Sanctioned Fund:</span>
-                    <span className="font-bold text-[#1F2933]">₹{((activeWork.sanctioned_amount || 0) / 100000).toFixed(2)} Lakhs</span>
+                    <span className="text-[#8E8D8A]">Sanctioned Fund:</span>
+                    <span className="font-bold text-[#050505]">₹{((activeWork.sanctioned_amount || 0) / 100000).toFixed(2)} Lakhs</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#667085]">Progress:</span>
-                    <span className="font-semibold text-[#1F2933]">{activeWork.physical_progress}% phys / {activeWork.financial_progress}% fin</span>
+                    <span className="text-[#8E8D8A]">Progress:</span>
+                    <span className="font-semibold text-[#050505]">{activeWork.physical_progress}% phys / {activeWork.financial_progress}% fin</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#667085]">Primary Signal:</span>
-                    <span className="font-bold text-[#B85C5C]">{activeWork.primary_risk_factor}</span>
+                    <span className="text-[#8E8D8A]">Primary Signal:</span>
+                    <span className="font-bold text-[#C94C4C]">{activeWork.primary_risk_factor}</span>
                   </div>
                 </div>
 
                 {activeWork.evidence_summary && activeWork.evidence_summary[0] && (
-                  <div className="text-xs text-[#475467] bg-[#F9FAFB] p-3 rounded-lg border border-[#EAECF0] space-y-1">
-                    <span className="font-bold text-[#1F2933] block">Key Anomaly Reason:</span>
+                  <div className="text-xs text-[#5E5E5D] bg-[#FAF9F5] p-3.5 rounded-xl border border-[#E8E4DC] space-y-1">
+                    <span className="font-bold text-[#050505] block">Key Anomaly Reason:</span>
                     <p className="leading-relaxed">{activeWork.evidence_summary[0]}</p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="py-12 sm:py-16 text-center text-[#667085] space-y-2">
-                <MapPin className="w-10 h-10 text-[#D0D5DD] mx-auto" />
-                <p className="text-xs font-medium text-[#1F2933]">
+              <div className="py-14 sm:py-20 text-center text-[#5E5E5D] space-y-2.5">
+                <MapPin className="w-10 h-10 text-[#C8BFB3] mx-auto" />
+                <p className="text-xs font-semibold text-[#050505]">
                   No project marker selected
                 </p>
-                <p className="text-[11px] text-[#667085] max-w-[200px] mx-auto">
+                <p className="text-[11px] text-[#8E8D8A] max-w-[210px] mx-auto leading-relaxed">
                   Click any colored marker on the map to preview detailed metrics and evidence.
                 </p>
               </div>
@@ -283,7 +283,7 @@ export default function RiskMapView({ works = [], onSelectWork }) {
           {activeWork && (
             <button
               onClick={() => onSelectWork(activeWork.work_id)}
-              className="btn-primary w-full text-xs mt-4 py-2 flex items-center justify-center gap-1.5"
+              className="btn-primary w-full text-xs mt-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5"
             >
               <span>Inspect Full Forensic Dossier</span>
               <ChevronRight className="w-3.5 h-3.5" />

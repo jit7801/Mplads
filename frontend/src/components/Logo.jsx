@@ -20,14 +20,14 @@ export default function Logo({
     <div className={`flex items-center gap-3 ${className}`}>
       {/* Emblem Icon with Glow & Border */}
       <div 
-        className={`${config.box} rounded-lg overflow-hidden shrink-0 flex items-center justify-center relative shadow-sm transition-transform duration-200 hover:scale-105 border ${
-          isDark ? 'border-amber-500/30 shadow-amber-500/10' : 'border-[#E4E7EC]'
+        className={`${config.box} rounded-xl overflow-hidden shrink-0 flex items-center justify-center relative shadow-xs transition-transform duration-200 hover:scale-105 border ${
+          isDark ? 'border-amber-500/30 shadow-amber-500/10' : 'border-[#E8E4DC]'
         }`}
       >
         <img 
           src="/logo.png" 
-          alt="MPLADS Risk Intelligence Emblem" 
-          className={`${config.img} object-cover rounded-lg`}
+          alt="NIRIKSHAN MPLADS Risk Intelligence Emblem" 
+          className={`${config.img} object-cover rounded-xl`}
           onError={(e) => {
             // Graceful fallback to SVG if PNG is unavailable
             e.target.onerror = null;
@@ -41,15 +41,18 @@ export default function Logo({
         <div className="overflow-hidden leading-tight">
           <div className="flex items-center gap-1.5">
             <span className={`font-bold tracking-tight truncate ${config.text} ${
-              isDark ? 'text-white' : 'text-[#1F2933]'
+              isDark ? 'text-white' : 'text-[#050505]'
             }`}>
-              MPLADS <span className={isDark ? 'text-amber-400 font-semibold' : 'text-[#183B56] font-semibold'}>Risk Intel</span>
+              NIRIKSHAN
+            </span>
+            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-[#F2F0EB] text-[#4B3C32] border border-[#E8E4DC]">
+              AI
             </span>
           </div>
           <p className={`font-normal truncate ${config.sub} ${
-            isDark ? 'text-slate-400' : 'text-[#667085]'
+            isDark ? 'text-stone-400' : 'text-[#5E5E5D]'
           }`}>
-            Decision Support System
+            MPLADS Monitoring
           </p>
         </div>
       )}

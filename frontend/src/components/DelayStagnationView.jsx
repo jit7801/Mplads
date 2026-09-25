@@ -98,10 +98,10 @@ export default function DelayStagnationView({ works = [], onSelectWork }) {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-[#1F2933] tracking-tight">
+          <h2 className="text-lg font-bold text-[#050505] tracking-tight">
             Delay & Stagnation Intelligence
           </h2>
-          <p className="text-xs text-[#667085]">
+          <p className="text-xs text-[#5E5E5D]">
             Track works where financial expenditure outpaces verified physical assets, milestone dates have lapsed, or progress updates have halted.
           </p>
         </div>
@@ -110,7 +110,7 @@ export default function DelayStagnationView({ works = [], onSelectWork }) {
           onClick={exportCSV}
           className="btn-secondary flex items-center gap-1.5 py-1.5 text-xs font-medium self-start sm:self-auto"
         >
-          <Download className="w-3.5 h-3.5 text-[#667085]" />
+          <Download className="w-3.5 h-3.5 text-[#5E5E5D]" />
           <span>Export Delays (CSV)</span>
         </button>
       </div>
@@ -121,7 +121,7 @@ export default function DelayStagnationView({ works = [], onSelectWork }) {
           
           {/* Search */}
           <div className="relative flex-1 max-w-md">
-            <Search className="w-3.5 h-3.5 text-[#98A2B3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-[#5E5E5D] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search delayed works by title, ID, district..."
@@ -130,12 +130,12 @@ export default function DelayStagnationView({ works = [], onSelectWork }) {
                 setSearch(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-[#F9FAFB] text-xs text-[#1F2933] pl-9 pr-7 py-2 rounded-md border border-[#D0D5DD] focus:outline-none focus:border-[#183B56]"
+              className="w-full bg-[#F7F7F1]/70 text-xs text-[#050505] pl-9 pr-7 py-2 rounded-xl border border-[#E8E4DC] focus:outline-none focus:border-[#4B3C32] focus:bg-[#FFFFFF] transition-all"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#98A2B3] hover:text-[#1F2933]"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5E5E5D] hover:text-[#050505]"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -143,7 +143,7 @@ export default function DelayStagnationView({ works = [], onSelectWork }) {
           </div>
 
           {/* Filter Type Pills */}
-          <div className="flex flex-wrap items-center gap-1 bg-[#F2F4F7] p-1 rounded-lg border border-[#EAECF0] text-xs">
+          <div className="flex flex-wrap items-center gap-1 bg-[#F7F7F1] p-1 rounded-xl border border-[#E8E4DC] text-xs">
             {[
               { id: 'ALL', label: 'All Flagged' },
               { id: 'MISMATCH', label: 'Progress Mismatch (>20%)' },
@@ -156,10 +156,10 @@ export default function DelayStagnationView({ works = [], onSelectWork }) {
                   setFilterType(tab.id);
                   setCurrentPage(1);
                 }}
-                className={`px-3 py-1.5 rounded-md font-semibold transition-colors ${
+                className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
                   filterType === tab.id
-                    ? 'bg-white text-[#183B56] shadow-xs'
-                    : 'text-[#667085] hover:text-[#1F2933]'
+                    ? 'bg-[#4B3C32] text-white shadow-xs'
+                    : 'text-[#5E5E5D] hover:text-[#050505] hover:bg-[#E8E4DC]/40'
                 }`}
               >
                 {tab.label}
@@ -169,8 +169,8 @@ export default function DelayStagnationView({ works = [], onSelectWork }) {
 
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-[#EAECF0] text-xs text-[#667085]">
-          <span>Displaying <strong className="text-[#1F2933]">{delayedWorks.length}</strong> flagged projects</span>
+        <div className="flex items-center justify-between pt-2 border-t border-[#E8E4DC] text-xs text-[#5E5E5D]">
+          <span>Displaying <strong className="text-[#050505]">{delayedWorks.length}</strong> flagged projects</span>
           {(search || filterType !== 'ALL') && (
             <button
               onClick={() => {
@@ -178,7 +178,7 @@ export default function DelayStagnationView({ works = [], onSelectWork }) {
                 setFilterType('ALL');
                 setCurrentPage(1);
               }}
-              className="text-[#B85C5C] hover:text-[#912018] flex items-center gap-1 font-semibold text-xs"
+              className="text-[#C94C4C] hover:text-[#C94C4C]/80 flex items-center gap-1 font-semibold text-xs transition-colors"
             >
               <FilterX className="w-3.5 h-3.5" />
               <span>Reset Filter</span>
@@ -206,10 +206,10 @@ export default function DelayStagnationView({ works = [], onSelectWork }) {
             <tbody>
               {paginatedWorks.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="py-12 text-center text-[#667085]">
-                    <AlertCircle className="w-8 h-8 text-[#98A2B3] mx-auto mb-2" />
-                    <div className="font-semibold text-sm text-[#1F2933]">No delayed works found</div>
-                    <p className="text-xs text-[#667085] mt-1">All works are currently progressing within milestones.</p>
+                  <td colSpan="8" className="py-12 text-center text-[#5E5E5D]">
+                    <AlertCircle className="w-8 h-8 text-[#C8BFB3] mx-auto mb-2" />
+                    <div className="font-semibold text-sm text-[#050505]">No delayed works found</div>
+                    <p className="text-xs text-[#5E5E5D] mt-1">All works are currently progressing within milestones.</p>
                   </td>
                 </tr>
               ) : (
@@ -222,51 +222,51 @@ export default function DelayStagnationView({ works = [], onSelectWork }) {
                     <tr
                       key={work.work_id}
                       onClick={() => onSelectWork(work.work_id)}
-                      className="cursor-pointer hover:bg-[#F9FAFB] transition-colors"
+                      className="cursor-pointer hover:bg-[#F7F7F1]/50 transition-colors"
                     >
                       <td className="max-w-[260px]">
-                        <div className="font-semibold text-[#1F2933] hover:text-[#183B56] transition-colors truncate">
+                        <div className="font-semibold text-[#050505] hover:text-[#4B3C32] transition-colors truncate">
                           {work.work_title}
                         </div>
-                        <div className="text-[10px] text-[#667085] font-mono mt-0.5">
+                        <div className="text-[10px] text-[#5E5E5D] font-mono mt-0.5">
                           {work.work_id} · {work.work_category}
                         </div>
                       </td>
 
                       <td className="whitespace-nowrap">
-                        <div className="text-[#1F2933] font-medium">{work.district}</div>
-                        <div className="text-[10px] text-[#667085]">{work.state}</div>
+                        <div className="text-[#050505] font-medium">{work.district}</div>
+                        <div className="text-[10px] text-[#5E5E5D]">{work.state}</div>
                       </td>
 
                       <td className="whitespace-nowrap">
-                        <div className="text-xs font-semibold text-[#1F2933]">
+                        <div className="text-xs font-semibold text-[#050505]">
                           {work.physical_progress}% phys / {work.financial_progress}% fin
                         </div>
-                        <div className="w-24 bg-[#E4E7EC] h-1.5 rounded-full mt-1 overflow-hidden flex">
-                          <div style={{ width: `${work.physical_progress}%` }} className="h-full bg-[#487A5E]" />
-                          <div style={{ width: `${Math.max(0, work.financial_progress - work.physical_progress)}%` }} className="h-full bg-[#C8754D]" />
+                        <div className="w-24 bg-[#E8E4DC]/80 h-1.5 rounded-full mt-1.5 overflow-hidden flex">
+                          <div style={{ width: `${work.physical_progress}%` }} className="h-full bg-[#2E8B57]" />
+                          <div style={{ width: `${Math.max(0, work.financial_progress - work.physical_progress)}%` }} className="h-full bg-[#AA896C]" />
                         </div>
                       </td>
 
                       <td className="whitespace-nowrap">
                         {gap > 0 ? (
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded border ${
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg border ${
                             gap >= 30 
-                              ? 'bg-[#FDF2F2] text-[#B85C5C] border-[#F8D7DA]' 
-                              : 'bg-[#FEF9EE] text-[#C49A4A] border-[#F9ECCB]'
+                              ? 'bg-[#C94C4C]/10 text-[#C94C4C] border-[#C94C4C]/25' 
+                              : 'bg-[#E6A23C]/10 text-[#916540] border-[#E6A23C]/25'
                           }`}>
                             +{gap}% gap
                           </span>
                         ) : (
-                          <span className="text-xs text-[#667085]">Aligned</span>
+                          <span className="text-xs text-[#5E5E5D]">Aligned</span>
                         )}
                       </td>
 
-                      <td className="whitespace-nowrap font-medium text-xs text-[#1F2933]">
+                      <td className="whitespace-nowrap font-medium text-xs text-[#050505]">
                         {daysDormant > 0 ? `${daysDormant} days` : 'Active'}
                       </td>
 
-                      <td className="whitespace-nowrap font-bold text-xs text-[#C8754D]">
+                      <td className="whitespace-nowrap font-bold text-xs text-[#916540]">
                         {work.delay_risk || 0} / 30
                       </td>
 
@@ -282,7 +282,7 @@ export default function DelayStagnationView({ works = [], onSelectWork }) {
                           }}
                           className="btn-secondary py-1 px-2.5 text-xs font-medium inline-flex items-center gap-1"
                         >
-                          <Eye className="w-3 h-3 text-[#667085]" />
+                          <Eye className="w-3 h-3 text-[#5E5E5D]" />
                           <span>Inspect</span>
                         </button>
                       </td>
@@ -298,8 +298,8 @@ export default function DelayStagnationView({ works = [], onSelectWork }) {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="gov-card p-3 flex items-center justify-between gap-3 text-xs">
-          <span className="text-[#667085]">
-            Page <strong className="text-[#1F2933]">{currentPage}</strong> of <strong className="text-[#1F2933]">{totalPages}</strong>
+          <span className="text-[#5E5E5D]">
+            Page <strong className="text-[#050505]">{currentPage}</strong> of <strong className="text-[#050505]">{totalPages}</strong>
           </span>
 
           <div className="flex items-center gap-1">

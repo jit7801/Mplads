@@ -41,14 +41,14 @@ export default function Sidebar({
   };
 
   const navContent = (collapsed) => (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-white select-none">
       {/* Brand Header */}
-      <div className="h-16 flex items-center justify-between px-3.5 border-b border-[#E4E7EC] overflow-hidden shrink-0">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-[#E8E4DC] overflow-hidden shrink-0">
         <Logo collapsed={collapsed} size="md" />
         {/* Mobile Close Button */}
         <button
           onClick={() => setIsMobileOpen(false)}
-          className="lg:hidden p-1.5 rounded-lg text-[#667085] hover:text-[#1F2933] hover:bg-[#F2F4F7]"
+          className="lg:hidden p-1.5 rounded-lg text-[#5E5E5D] hover:text-[#050505] hover:bg-[#F7F7F1] transition-colors"
           aria-label="Close navigation sidebar"
         >
           <X className="w-5 h-5" />
@@ -56,9 +56,9 @@ export default function Sidebar({
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 p-2.5 space-y-0.5 overflow-y-auto" aria-label="Main Navigation">
-        <div className="px-2.5 py-1.5 text-[10px] font-semibold text-[#98A2B3] uppercase tracking-wider">
-          {!collapsed ? 'Analytics & Monitoring' : '•••'}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto" aria-label="Main Navigation">
+        <div className="px-3 py-1.5 text-[10px] font-semibold text-[#8E8D8A] uppercase tracking-wider">
+          {!collapsed ? 'Intelligence & Audit' : '•••'}
         </div>
 
         {navItems.map((item) => {
@@ -70,13 +70,13 @@ export default function Sidebar({
               onClick={() => handleNavClick(item.id)}
               title={collapsed ? item.label : undefined}
               aria-current={isActive ? 'page' : undefined}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-[#183B56] ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#4B3C32] ${
                 isActive
-                  ? 'bg-[#F2F4F7] text-[#183B56] font-semibold shadow-xs'
-                  : 'text-[#475467] hover:bg-[#F9FAFB] hover:text-[#1F2933]'
+                  ? 'bg-[#4B3C32] text-white font-medium shadow-xs shadow-[#4B3C32]/10'
+                  : 'text-[#5E5E5D] hover:bg-[#F7F7F1] hover:text-[#050505]'
               }`}
             >
-              <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#183B56]' : 'text-[#667085]'}`} />
+              <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-white' : 'text-[#8E8D8A]'}`} />
               {!collapsed && <span className="truncate">{item.label}</span>}
             </button>
           );
@@ -84,23 +84,23 @@ export default function Sidebar({
       </nav>
 
       {/* Footer Tools & Collapse Button */}
-      <div className="p-2.5 border-t border-[#E4E7EC] space-y-1 shrink-0">
+      <div className="p-3 border-t border-[#E8E4DC] space-y-1.5 shrink-0 bg-[#FAF9F6]">
         <button
           onClick={() => {
             onOpenSettings();
             if (setIsMobileOpen) setIsMobileOpen(false);
           }}
           title={collapsed ? 'Policy Settings & Weights' : undefined}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-medium text-[#475467] hover:bg-[#F9FAFB] hover:text-[#1F2933] transition-colors focus-visible:ring-2 focus-visible:ring-[#183B56]"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-[#5E5E5D] hover:bg-white hover:text-[#050505] hover:shadow-xs transition-all focus-visible:ring-2 focus-visible:ring-[#4B3C32]"
         >
-          <Sliders className="w-4 h-4 text-[#667085] shrink-0" />
+          <Sliders className="w-4 h-4 text-[#8E8D8A] shrink-0" />
           {!collapsed && <span className="truncate">Policy Weights</span>}
         </button>
 
         {/* Desktop Collapse Toggle */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="hidden lg:flex w-full items-center justify-center gap-2 px-3 py-1.5 rounded-md text-xs text-[#667085] hover:bg-[#F9FAFB] hover:text-[#1F2933] transition-colors focus-visible:ring-2 focus-visible:ring-[#183B56]"
+          className="hidden lg:flex w-full items-center justify-center gap-2 px-3 py-1.5 rounded-xl text-xs text-[#8E8D8A] hover:bg-white hover:text-[#050505] hover:shadow-xs transition-all focus-visible:ring-2 focus-visible:ring-[#4B3C32]"
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
@@ -109,7 +109,7 @@ export default function Sidebar({
           ) : (
             <>
               <ChevronLeft className="w-4 h-4" />
-              <span className="text-[11px]">Collapse</span>
+              <span className="text-[11px] font-medium">Collapse</span>
             </>
           )}
         </button>

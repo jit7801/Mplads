@@ -77,27 +77,27 @@ export default function SettingsModal({ isOpen, onClose, onWeightsApplied }) {
       onClick={onClose}
     >
       <div 
-        className="bg-white border border-[#E4E7EC] rounded-xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95"
+        className="bg-white border border-[#E8E4DC] rounded-2xl w-full max-w-lg shadow-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E4E7EC] bg-[#F9FAFB]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E8E4DC] bg-[#F7F7F1]/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#183B56] text-white flex items-center justify-center shrink-0 shadow-sm">
+            <div className="w-8 h-8 rounded-xl bg-[#4B3C32] text-white flex items-center justify-center shrink-0 shadow-xs">
               <Sliders className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#1F2933]">
+              <h3 className="text-sm font-bold text-[#050505]">
                 Risk Engine Policy Weights
               </h3>
-              <p className="text-[11px] text-[#667085]">
+              <p className="text-[11px] text-[#5E5E5D]">
                 Calibrate the multi-dimensional Unified Risk Scoring weights.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#667085] hover:text-[#1F2933] hover:bg-[#EAECF0]"
+            className="p-1.5 rounded-lg text-[#5E5E5D] hover:text-[#050505] hover:bg-[#E8E4DC]/40 transition-colors"
             aria-label="Close settings"
           >
             <X className="w-4 h-4" />
@@ -108,16 +108,16 @@ export default function SettingsModal({ isOpen, onClose, onWeightsApplied }) {
         <div className="p-5 space-y-4 text-xs">
           
           {/* Total Weight Status Header */}
-          <div className={`p-3 rounded-lg flex items-center justify-between border ${
+          <div className={`p-3 rounded-xl flex items-center justify-between border ${
             isValidTotal 
-              ? 'bg-[#F2F8F4] border-[#D8EADB] text-[#1A4B30]' 
-              : 'bg-[#FEF9EE] border-[#F9ECCB] text-[#7A4D05]'
+              ? 'bg-[#2E8B57]/10 border-[#2E8B57]/25 text-[#2E8B57]' 
+              : 'bg-[#E6A23C]/10 border-[#E6A23C]/25 text-[#916540]'
           }`}>
             <div className="flex items-center gap-2">
               {isValidTotal ? (
-                <CheckCircle2 className="w-4 h-4 text-[#487A5E] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#2E8B57] shrink-0" />
               ) : (
-                <AlertTriangle className="w-4 h-4 text-[#C49A4A] shrink-0" />
+                <AlertTriangle className="w-4 h-4 text-[#E6A23C] shrink-0" />
               )}
               <span className="font-semibold">
                 Total Weight: <strong className="font-mono">{total}%</strong> {isValidTotal ? '(Valid 100%)' : '(Must sum to 100%)'}
@@ -135,9 +135,9 @@ export default function SettingsModal({ isOpen, onClose, onWeightsApplied }) {
 
           {/* 1. Financial Weight */}
           <div className="space-y-1">
-            <div className="flex justify-between font-semibold text-[#1F2933]">
+            <div className="flex justify-between font-semibold text-[#050505]">
               <span>Financial & Cost Anomaly Weight</span>
-              <span className="font-mono text-[#183B56]">{finWeight}%</span>
+              <span className="font-mono text-[#4B3C32]">{finWeight}%</span>
             </div>
             <input
               type="range"
@@ -145,18 +145,18 @@ export default function SettingsModal({ isOpen, onClose, onWeightsApplied }) {
               max="60"
               value={finWeight}
               onChange={(e) => setFinWeight(Number(e.target.value))}
-              className="w-full accent-[#183B56] cursor-pointer"
+              className="w-full accent-[#4B3C32] cursor-pointer"
             />
-            <span className="text-[10px] text-[#667085] block">
+            <span className="text-[10px] text-[#5E5E5D] block">
               Evaluates cost outliers vs peer group median and high Modified Z-scores.
             </span>
           </div>
 
           {/* 2. Delay Weight */}
           <div className="space-y-1">
-            <div className="flex justify-between font-semibold text-[#1F2933]">
+            <div className="flex justify-between font-semibold text-[#050505]">
               <span>Delay & Progress Divergence Weight</span>
-              <span className="font-mono text-[#183B56]">{delayWeight}%</span>
+              <span className="font-mono text-[#4B3C32]">{delayWeight}%</span>
             </div>
             <input
               type="range"
@@ -164,18 +164,18 @@ export default function SettingsModal({ isOpen, onClose, onWeightsApplied }) {
               max="60"
               value={delayWeight}
               onChange={(e) => setDelayWeight(Number(e.target.value))}
-              className="w-full accent-[#183B56] cursor-pointer"
+              className="w-full accent-[#4B3C32] cursor-pointer"
             />
-            <span className="text-[10px] text-[#667085] block">
+            <span className="text-[10px] text-[#5E5E5D] block">
               Evaluates expenditure vs physical completion gaps and dormancy days.
             </span>
           </div>
 
           {/* 3. Duplicate Weight */}
           <div className="space-y-1">
-            <div className="flex justify-between font-semibold text-[#1F2933]">
+            <div className="flex justify-between font-semibold text-[#050505]">
               <span>Geospatial Duplicate Overlap Weight</span>
-              <span className="font-mono text-[#183B56]">{dupWeight}%</span>
+              <span className="font-mono text-[#4B3C32]">{dupWeight}%</span>
             </div>
             <input
               type="range"
@@ -183,18 +183,18 @@ export default function SettingsModal({ isOpen, onClose, onWeightsApplied }) {
               max="60"
               value={dupWeight}
               onChange={(e) => setDupWeight(Number(e.target.value))}
-              className="w-full accent-[#183B56] cursor-pointer"
+              className="w-full accent-[#4B3C32] cursor-pointer"
             />
-            <span className="text-[10px] text-[#667085] block">
+            <span className="text-[10px] text-[#5E5E5D] block">
               Evaluates spatial proximity (&lt;150m) and TF-IDF semantic title similarity.
             </span>
           </div>
 
           {/* 4. Compliance Weight */}
           <div className="space-y-1">
-            <div className="flex justify-between font-semibold text-[#1F2933]">
+            <div className="flex justify-between font-semibold text-[#050505]">
               <span>Compliance & Documentation Deficit</span>
-              <span className="font-mono text-[#183B56]">{compWeight}%</span>
+              <span className="font-mono text-[#4B3C32]">{compWeight}%</span>
             </div>
             <input
               type="range"
@@ -202,9 +202,9 @@ export default function SettingsModal({ isOpen, onClose, onWeightsApplied }) {
               max="60"
               value={compWeight}
               onChange={(e) => setCompWeight(Number(e.target.value))}
-              className="w-full accent-[#183B56] cursor-pointer"
+              className="w-full accent-[#4B3C32] cursor-pointer"
             />
-            <span className="text-[10px] text-[#667085] block">
+            <span className="text-[10px] text-[#5E5E5D] block">
               Evaluates missing milestone dates, geotagging gaps, and sanction records.
             </span>
           </div>
@@ -212,27 +212,27 @@ export default function SettingsModal({ isOpen, onClose, onWeightsApplied }) {
         </div>
 
         {/* Footer Actions */}
-        <div className="px-5 py-3.5 border-t border-[#E4E7EC] bg-[#F9FAFB] flex items-center justify-between">
+        <div className="px-5 py-3.5 border-t border-[#E8E4DC] bg-[#F7F7F1]/60 flex items-center justify-between">
           <button
             onClick={handleReset}
             className="btn-secondary text-xs flex items-center gap-1 py-1.5"
             title="Reset weights to default values"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-[#667085]" />
+            <RotateCcw className="w-3.5 h-3.5 text-[#5E5E5D]" />
             <span>Reset Defaults</span>
           </button>
 
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="btn-secondary text-xs py-1.5"
+              className="btn-secondary text-xs py-1.5 px-3"
             >
               Cancel
             </button>
             <button
               onClick={handleApply}
               disabled={isSubmitting || !isValidTotal}
-              className="btn-primary text-xs flex items-center gap-1.5 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary text-xs flex items-center gap-1.5 py-1.5 px-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="w-3.5 h-3.5" />
               <span>{isSubmitting ? 'Recalculating...' : 'Apply & Recalculate'}</span>

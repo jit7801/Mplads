@@ -1,15 +1,22 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
 
+function buildQuery(params = {}) {
+  const clean = Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== "");
+  return new URLSearchParams(clean).toString();
+}
+
 export async function fetchSummary(params = {}) {
-  const query = new URLSearchParams(params).toString();
-  const res = await fetch(`${API_BASE_URL}/summary?${query}`);
+  const query = buildQuery(params);
+  const url = query ? `${API_BASE_URL}/summary?${query}` : `${API_BASE_URL}/summary`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch summary metrics");
   return res.json();
 }
 
 export async function fetchWorks(params = {}) {
-  const query = new URLSearchParams(params).toString();
-  const res = await fetch(`${API_BASE_URL}/works?${query}`);
+  const query = buildQuery(params);
+  const url = query ? `${API_BASE_URL}/works?${query}` : `${API_BASE_URL}/works`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch works queue");
   return res.json();
 }
@@ -37,8 +44,9 @@ export async function recalculateRiskWeights(weights) {
 }
 
 export async function fetchMps(params = {}) {
-  const query = new URLSearchParams(params).toString();
-  const res = await fetch(`${API_BASE_URL}/mps?${query}`);
+  const query = buildQuery(params);
+  const url = query ? `${API_BASE_URL}/mps?${query}` : `${API_BASE_URL}/mps`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch MP allocations");
   return res.json();
 }
